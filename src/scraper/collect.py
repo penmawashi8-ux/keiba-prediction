@@ -71,12 +71,35 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
     """レース結果ページをパースしてFIELDNAMESのdictのリストを返す。"""
     soup = BeautifulSoup(html, "lxml", from_encoding=ENCODING)
 
-    # race_name: div.RaceName の中に h1 がある構造
+    # race_name / surface / distance / course / weather / condition は
+    # dl.racedata に集約されている
+    # 例: "1 R 3歳未勝利 芝右2000m / 天候 : 晴 / 芝 : 良 / 発走 : 10:01"
     race_name = ""
-    name_div = soup.find(class_=re.compile(r"RaceName"))
-    if name_div:
-        h1 = name_div.find("h1")
-        race_name = (h1 or name_div).get_text(strip=True)
+    surface, distance, course, weather, condition = "", "", "", "", ""
+    racedata_dl = soup.find("dl", class_=re.compile(r"racedata"))
+    if racedata_dl:
+        # race_name: 最初の dd タグ
+        dd = racedata_dl.find("dd")
+        if dd:
+            race_name = dd.get_text(strip=True)
+        text = racedata_dl.get_text(" ", strip=True)
+        # surface / distance: "芝右2000m" / "ダ1600m"
+        m = re.search(r"([芝ダ障])(?:右外|右内|右|左外|左内|左|直線)?(\d+)m", text)
+        if m:
+            surface = "芝" if m.group(1) == "芝" else ("障" if m.group(1) == "障" else "ダート")
+            distance = m.group(2)
+        # course direction
+        m2 = re.search(r"[芝ダ障](右外|右内|右|左外|左内|左|直線)", text)
+        if m2:
+            course = m2.group(1)
+        # weather: "天候 : 晴"
+        m3 = re.search(r"天候\s*[:：]\s*(\S+)", text)
+        if m3:
+            weather = m3.group(1)
+        # condition: "芝 : 良" / "ダート : 良" (スペースで区別)
+        m4 = re.search(r"(?:芝|ダート|障)\s+[:：]\s*(\S+)", text)
+        if m4:
+            condition = m4.group(1)
 
     # date: ページ内の日付パターンを検索
     date_str = ""
@@ -84,26 +107,6 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
     m_date = re.search(r"(\d{4}年\d{1,2}月\d{1,2}日)", raw_text)
     if m_date:
         date_str = m_date.group(1)
-
-    # surface/distance/course/weather/condition は RaceData01 に含まれる
-    # 例: "15:40発走 / 芝・右外1600m / 天候 : 晴 / 馬場 : 良"
-    surface, distance, course, weather, condition = "", "", "", "", ""
-    race_data1 = soup.find("div", class_=re.compile(r"RaceData01"))
-    if race_data1:
-        text = race_data1.get_text(" ", strip=True)
-        m = re.search(r"([芝ダ障])(\d+)m", text)
-        if m:
-            surface = "芝" if m.group(1) == "芝" else ("障" if m.group(1) == "障" else "ダート")
-            distance = m.group(2)
-        m2 = re.search(r"(右|左)(外|内)?|直線", text)
-        if m2:
-            course = m2.group(0)
-        m3 = re.search(r"天候\s*[:：]\s*(\S+)", text)
-        if m3:
-            weather = m3.group(1)
-        m4 = re.search(r"馬場\s*[:：]\s*(\S+)", text)
-        if m4:
-            condition = m4.group(1)
 
     venue_code = race_id[4:6]
     venue_name = VENUES.get(venue_code, venue_code)
