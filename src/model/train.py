@@ -1,0 +1,206 @@
+"""
+LightGBM モデル学習スクリプト
+
+入力: data/processed/features.csv
+出力: src/model/lgbm_model.pkl
+
+学習: 2015〜2022年  /  検証: 2023年  /  テスト: 2024年
+ターゲット: is_win (1着=1, それ以外=0)
+"""
+
+import pickle
+from pathlib import Path
+
+import lightgbm as lgb
+import numpy as np
+import pandas as pd
+from sklearn.metrics import roc_auc_score
+
+FEATURES_PATH = Path(__file__).resolve().parents[2] / "data" / "processed" / "features.csv"
+MODEL_DIR     = Path(__file__).resolve().parent
+MODEL_DIR.mkdir(parents=True, exist_ok=True)
+MODEL_PATH    = MODEL_DIR / "lgbm_model.pkl"
+
+FEATURE_COLS = [
+    "distance_m",
+    "surface_enc",
+    "condition_enc",
+    "weather_enc",
+    "weight_carried",
+    "horse_weight_kg",
+    "horse_avg_order_3",
+    "horse_avg_order_5",
+    "horse_avg_last3f_3",
+    "horse_avg_last3f_5",
+    "horse_win_rate_dist",
+    "horse_win_rate_venue",
+    "horse_win_rate_surface",
+    "jockey_win_rate_100",
+    "jockey_win_rate_venue",   # 仕様の jockey_win_rate_course に相当
+]
+
+LGBM_PARAMS = {
+    "objective":        "binary",
+    "metric":           "auc",
+    "learning_rate":    0.05,
+    "num_leaves":       63,
+    "max_depth":        -1,
+    "min_data_in_leaf": 50,
+    "feature_fraction": 0.8,
+    "bagging_fraction": 0.8,
+    "bagging_freq":     5,
+    "lambda_l1":        0.1,
+    "lambda_l2":        0.1,
+    "verbose":          -1,
+    "seed":             42,
+}
+
+# ─── データ読み込み・分割 ─────────────────────────────────────────────────────
+
+def load_and_split():
+    df = pd.read_csv(FEATURES_PATH)
+    df["date"] = pd.to_datetime(df["date"])
+    df["year"] = df["date"].dt.year
+
+    # is_win が NaN（中止・除外）は学習対象外
+    df = df.dropna(subset=["is_win"])
+
+    train = df[df["year"] <= 2022]
+    valid = df[df["year"] == 2023]
+    test  = df[df["year"] == 2024]
+
+    print(f"学習: {len(train):,}行 ({train['year'].min()}〜{train['year'].max()})")
+    print(f"検証: {len(valid):,}行 ({valid['year'].min()})")
+    print(f"テスト: {len(test):,}行 ({test['year'].min()})")
+    print(f"勝率 — 学習:{train['is_win'].mean():.4f}  検証:{valid['is_win'].mean():.4f}  テスト:{test['is_win'].mean():.4f}")
+    return train, valid, test
+
+
+# ─── 学習 ────────────────────────────────────────────────────────────────────
+
+def train_model(train: pd.DataFrame, valid: pd.DataFrame) -> lgb.Booster:
+    X_tr = train[FEATURE_COLS]
+    y_tr = train["is_win"].astype(int)
+    X_va = valid[FEATURE_COLS]
+    y_va = valid["is_win"].astype(int)
+
+    dtrain = lgb.Dataset(X_tr, label=y_tr, feature_name=FEATURE_COLS, free_raw_data=False)
+    dvalid = lgb.Dataset(X_va, label=y_va, reference=dtrain,          free_raw_data=False)
+
+    callbacks = [
+        lgb.early_stopping(stopping_rounds=50, verbose=False),
+        lgb.log_evaluation(period=100),
+    ]
+
+    model = lgb.train(
+        LGBM_PARAMS,
+        dtrain,
+        num_boost_round=2000,
+        valid_sets=[dvalid],
+        valid_names=["valid"],
+        callbacks=callbacks,
+    )
+    return model
+
+
+# ─── 評価: AUC ───────────────────────────────────────────────────────────────
+
+def evaluate_auc(model: lgb.Booster, df: pd.DataFrame, label: str) -> float:
+    X   = df[FEATURE_COLS]
+    y   = df["is_win"].astype(int)
+    pred = model.predict(X)
+    auc  = roc_auc_score(y, pred)
+    print(f"  AUC [{label}]: {auc:.4f}")
+    return auc
+
+
+# ─── 特徴量重要度 ─────────────────────────────────────────────────────────────
+
+def show_importance(model: lgb.Booster):
+    imp = pd.Series(
+        model.feature_importance(importance_type="gain"),
+        index=model.feature_name(),
+    ).sort_values(ascending=False)
+
+    print("\n特徴量重要度 Top 10 (gain):")
+    print(f"  {'特徴量':<30} {'重要度':>10}")
+    print("  " + "-" * 42)
+    for name, val in imp.head(10).items():
+        bar = "█" * int(val / imp.iloc[0] * 20)
+        print(f"  {name:<30} {val:>10,.1f}  {bar}")
+    return imp
+
+
+# ─── 期待値シミュレーション ───────────────────────────────────────────────────
+
+def ev_simulation(model: lgb.Booster, df: pd.DataFrame, label: str):
+    """
+    予測勝率 > 1/odds (期待値>1) の買い目のみ単勝購入したと仮定して
+    的中率・回収率を算出する。
+    """
+    d = df.dropna(subset=["odds"]).copy()
+    d["pred_prob"]    = model.predict(d[FEATURE_COLS])
+    d["implied_prob"] = 1.0 / d["odds"]
+    d["is_ev_plus"]   = d["pred_prob"] > d["implied_prob"]
+
+    bets = d[d["is_ev_plus"]].copy()
+
+    if len(bets) == 0:
+        print(f"\n期待値シミュレーション [{label}]: 対象買い目なし")
+        return
+
+    n_bets   = len(bets)
+    n_wins   = int(bets["is_win"].sum())
+    hit_rate = n_wins / n_bets
+
+    # 払い戻し: 的中時に odds 倍を受け取る (購入は各100円想定)
+    payout       = (bets["is_win"] * bets["odds"]).sum()
+    recovery     = payout / n_bets  # 100円賭けたときの回収率
+
+    print(f"\n期待値シミュレーション [{label}]:")
+    print(f"  対象買い目数    : {n_bets:,}")
+    print(f"  的中数          : {n_wins:,}")
+    print(f"  的中率          : {hit_rate:.2%}")
+    print(f"  回収率          : {recovery:.2%}  (100円賭け換算)")
+
+    # 予測確率の分布確認
+    print(f"  pred_prob 中央値: {bets['pred_prob'].median():.4f}")
+    print(f"  odds 中央値     : {bets['odds'].median():.1f}")
+
+
+# ─── モデル保存 ──────────────────────────────────────────────────────────────
+
+def save_model(model: lgb.Booster):
+    with open(MODEL_PATH, "wb") as f:
+        pickle.dump(model, f)
+    print(f"\nモデル保存: {MODEL_PATH}")
+
+
+# ─── メイン ──────────────────────────────────────────────────────────────────
+
+def main():
+    print("=" * 60)
+    print("LightGBM 学習開始")
+    print("=" * 60)
+
+    train, valid, test = load_and_split()
+
+    print("\n--- 学習中 ---")
+    model = train_model(train, valid)
+    print(f"最適 round: {model.best_iteration}")
+
+    print("\n--- AUC ---")
+    evaluate_auc(model, valid, "2023 検証")
+    evaluate_auc(model, test,  "2024 テスト")
+
+    show_importance(model)
+
+    ev_simulation(model, valid, "2023 検証")
+    ev_simulation(model, test,  "2024 テスト")
+
+    save_model(model)
+    print("\n完了")
+
+
+if __name__ == "__main__":
+    main()
