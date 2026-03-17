@@ -71,22 +71,26 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
     """レース結果ページをパースしてFIELDNAMESのdictのリストを返す。"""
     soup = BeautifulSoup(html, "lxml", from_encoding=ENCODING)
 
+    # race_name: div.RaceName の中に h1 がある構造
     race_name = ""
-    name_tag = soup.find("h1", class_=re.compile(r"RaceName"))
-    if name_tag:
-        race_name = name_tag.get_text(strip=True)
+    name_div = soup.find(class_=re.compile(r"RaceName"))
+    if name_div:
+        h1 = name_div.find("h1")
+        race_name = (h1 or name_div).get_text(strip=True)
 
+    # date: ページ内の日付パターンを検索
     date_str = ""
+    raw_text = html.decode(ENCODING, errors="replace")
+    m_date = re.search(r"(\d{4}年\d{1,2}月\d{1,2}日)", raw_text)
+    if m_date:
+        date_str = m_date.group(1)
+
+    # surface/distance/course/weather/condition は RaceData01 に含まれる
+    # 例: "15:40発走 / 芝・右外1600m / 天候 : 晴 / 馬場 : 良"
+    surface, distance, course, weather, condition = "", "", "", "", ""
     race_data1 = soup.find("div", class_=re.compile(r"RaceData01"))
     if race_data1:
-        spans = race_data1.find_all("span")
-        if spans:
-            date_str = spans[0].get_text(strip=True)
-
-    surface, distance, course, weather, condition = "", "", "", "", ""
-    race_data2 = soup.find("div", class_=re.compile(r"RaceData02"))
-    if race_data2:
-        text = race_data2.get_text(" ", strip=True)
+        text = race_data1.get_text(" ", strip=True)
         m = re.search(r"([芝ダ障])(\d+)m", text)
         if m:
             surface = "芝" if m.group(1) == "芝" else ("障" if m.group(1) == "障" else "ダート")
@@ -213,9 +217,11 @@ async def process_race(
 
 # ─── メイン処理 ──────────────────────────────────────────────────────────────
 
-async def collect_async(year: int, venue_filter: str | None, workers: int, logger: logging.Logger) -> None:
+async def collect_async(year: int, venue_filter: str | None, workers: int, logger: logging.Logger, limit: int | None = None) -> None:
     out_path = DATA_DIR / f"{year}_races.csv"
     race_ids = generate_race_ids(year, venue_filter)
+    if limit:
+        race_ids = race_ids[:limit]
 
     logger.info(f"収集開始: year={year}, venue={venue_filter or 'all'}, 候補={len(race_ids)}件, 並列数={workers}")
 
@@ -247,8 +253,8 @@ async def collect_async(year: int, venue_filter: str | None, workers: int, logge
     logger.info(f"完了: {saved}レコード保存, {skipped}件スキップ → {out_path}")
 
 
-def collect(year: int, venue_filter: str | None, workers: int, logger: logging.Logger) -> None:
-    asyncio.run(collect_async(year, venue_filter, workers, logger))
+def collect(year: int, venue_filter: str | None, workers: int, logger: logging.Logger, limit: int | None = None) -> None:
+    asyncio.run(collect_async(year, venue_filter, workers, logger, limit))
 
 
 # ─── エントリーポイント ───────────────────────────────────────────────────────
@@ -258,7 +264,8 @@ if __name__ == "__main__":
     parser.add_argument("--year",    type=int, required=True, help="対象年 (例: 2023)")
     parser.add_argument("--venue",   type=str, default=None,  help="競馬場コード絞り込み (例: 05=東京)")
     parser.add_argument("--workers", type=int, default=10,    help="並列ワーカー数 (デフォルト: 10)")
+    parser.add_argument("--limit",   type=int, default=None,  help="処理するrace_idの上限数（テスト用）")
     args = parser.parse_args()
 
     logger = setup_logger(args.year)
-    collect(args.year, args.venue, args.workers, logger)
+    collect(args.year, args.venue, args.workers, logger, args.limit)

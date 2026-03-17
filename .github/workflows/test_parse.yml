@@ -1,0 +1,53 @@
+name: Test Parse (1 Race)
+
+on:
+  workflow_dispatch:
+    inputs:
+      race_year:
+        description: '確認する年'
+        required: true
+        default: '2023'
+      venue:
+        description: '競馬場コード (例: 05=東京)'
+        required: false
+        default: '05'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scraper (1 race only)
+        run: |
+          python src/scraper/collect.py \
+            --year ${{ github.event.inputs.race_year }} \
+            --venue ${{ github.event.inputs.venue }} \
+            --workers 1 \
+            --limit 50
+
+      - name: Show results
+        run: |
+          CSV="data/raw/${{ github.event.inputs.race_year }}_races.csv"
+          echo "=== 行数 ==="
+          wc -l "$CSV"
+          echo ""
+          echo "=== 先頭5行 ==="
+          python3 -c "
+          import pandas as pd
+          df = pd.read_csv('$CSV')
+          print(df.head(5).to_string())
+          print()
+          print('=== 欠損値 ===')
+          print(df.isnull().sum().to_string())
+          "
