@@ -75,6 +75,7 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
     # dl.racedata に集約されている
     # dd 構造例: "3歳未勝利 芝右2000m / 天候 : 晴 / 芝 : 良 / 発走 : 10:01"
     #           "御堂筋ステークス(3勝) 芝右 外2400m / 天候 : 雨 / 芝 : 重 / ..."
+    #           "障害3歳以上未勝利 障芝 外-内2890m / 天候 : 晴 / 障害 : 良 / ..."
     race_name = ""
     surface, distance, course, weather, condition = "", "", "", "", ""
     racedata_dl = soup.find("dl", class_=re.compile(r"racedata"))
@@ -84,14 +85,25 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
         dd = racedata_dl.find("dd")
         if dd:
             dd_text = dd.get_text(strip=True)
-            m_name = re.match(r"^(.+?)\s*[芝ダ障](?=\s*(?:右|左|直|\d))", dd_text)
-            race_name = m_name.group(1).strip() if m_name else dd_text
-        # surface / distance: "芝右2000m" / "芝右 外2400m" / "ダ1600m"
-        # \s* で "右 外" のような空白入りも許容
-        m = re.search(r"([芝ダ障])\s*(?:右\s*外|右\s*内|右|左\s*外|左\s*内|左|直線)?\s*(\d+)m", text)
-        if m:
-            surface = "芝" if m.group(1) == "芝" else ("障" if m.group(1) == "障" else "ダート")
-            distance = m.group(2)
+            # 通常: "3歳未勝利ダ左1800m" / "御堂筋S 芝右外2400m"
+            # 障害: "障害3歳以上未勝利 障芝 外-内2890m"
+            m_name = re.match(r"^(.+?)\s*障芝|^(.+?)\s*[芝ダ障](?=\s*(?:右|左|直|\d))", dd_text)
+            if m_name:
+                race_name = (m_name.group(1) or m_name.group(2) or "").strip()
+            else:
+                race_name = dd_text
+        # surface / distance: 通常"芝右2000m" / 障害"障芝 外-内2890m"
+        # 障害レース: "障芝" or "障ダート" + 任意テキスト + 距離
+        m_jump = re.search(r"障[芝ダ][^/]*?(\d+)m", text)
+        if m_jump:
+            surface = "障"
+            distance = m_jump.group(1)
+        else:
+            # \s* で "右 外" のような空白入りも許容
+            m = re.search(r"([芝ダ])\s*(?:右\s*外|右\s*内|右|左\s*外|左\s*内|左|直線)?\s*(\d+)m", text)
+            if m:
+                surface = "芝" if m.group(1) == "芝" else "ダート"
+                distance = m.group(2)
         # course direction (空白を正規化: "右 外" → "右外")
         m2 = re.search(r"[芝ダ障]\s*(右\s*外|右\s*内|右|左\s*外|左\s*内|左|直線)", text)
         if m2:
@@ -100,8 +112,8 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
         m3 = re.search(r"天候\s*[:：]\s*(\S+)", text)
         if m3:
             weather = m3.group(1)
-        # condition: "芝 : 良" / "ダート : 良" (スペースで course 記号と区別)
-        m4 = re.search(r"(?:芝|ダート|障)\s+[:：]\s*(\S+)", text)
+        # condition: "芝 : 良" / "ダート : 良" / "障害 : 良" (スペースで course 記号と区別)
+        m4 = re.search(r"(?:芝|ダート|障害)\s+[:：]\s*(\S+)", text)
         if m4:
             condition = m4.group(1)
 
