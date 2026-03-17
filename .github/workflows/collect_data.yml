@@ -3,10 +3,10 @@ name: Collect Race Data
 on:
   workflow_dispatch:
     inputs:
-      year:
-        description: '対象年 (例: 2023)'
+      years:
+        description: '対象年 (カンマ区切り or "2015-2024" 範囲指定)'
         required: true
-        default: '2023'
+        default: '2015-2024'
       venue:
         description: '競馬場コード (空白=全場, 例: 05=東京)'
         required: false
@@ -20,9 +20,38 @@ permissions:
   contents: write
 
 jobs:
-  collect:
+  # 入力された年をMatrix用のJSON配列に変換
+  setup:
     runs-on: ubuntu-latest
-    timeout-minutes: 360  # 最大6時間
+    outputs:
+      year_matrix: ${{ steps.parse.outputs.year_matrix }}
+    steps:
+      - name: Parse years input
+        id: parse
+        run: |
+          INPUT="${{ github.event.inputs.years }}"
+          # "2015-2024" 形式の範囲を展開
+          if echo "$INPUT" | grep -qE '^[0-9]{4}-[0-9]{4}$'; then
+            START=$(echo "$INPUT" | cut -d'-' -f1)
+            END=$(echo "$INPUT" | cut -d'-' -f2)
+            YEARS=$(seq "$START" "$END" | tr '\n' ',' | sed 's/,$//')
+          else
+            YEARS="$INPUT"
+          fi
+          # カンマ区切り → JSON配列
+          JSON=$(echo "$YEARS" | tr ',' '\n' | jq -R . | jq -sc .)
+          echo "year_matrix=$JSON" >> "$GITHUB_OUTPUT"
+          echo "Parsed years: $JSON"
+
+  collect:
+    needs: setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 60  # 1年分は並列10ワーカーで約30分
+    strategy:
+      matrix:
+        year: ${{ fromJson(needs.setup.outputs.year_matrix) }}
+      max-parallel: 10   # 10年分を同時実行
+      fail-fast: false   # 1年失敗しても他は継続
 
     steps:
       - name: Checkout repository
@@ -43,14 +72,34 @@ jobs:
           if [ -n "${{ github.event.inputs.venue }}" ]; then
             VENUE_ARG="--venue ${{ github.event.inputs.venue }}"
           fi
-          python src/scraper/collect.py --year ${{ github.event.inputs.year }} $VENUE_ARG --workers ${{ github.event.inputs.workers }}
+          python src/scraper/collect.py \
+            --year ${{ matrix.year }} \
+            $VENUE_ARG \
+            --workers ${{ github.event.inputs.workers }}
 
       - name: Upload CSV as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: race-data-${{ github.event.inputs.year }}
-          path: data/raw/${{ github.event.inputs.year }}_races.csv
-          retention-days: 30
+          name: race-data-${{ matrix.year }}
+          path: data/raw/${{ matrix.year }}_races.csv
+          retention-days: 90
+
+  # 全年のCSVをまとめてコミット
+  commit:
+    needs: collect
+    runs-on: ubuntu-latest
+    if: always()  # 一部失敗しても収集できた分はコミット
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: race-data-*
+          path: data/raw/
+          merge-multiple: true
 
       - name: Commit and push data
         run: |
@@ -60,6 +109,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "data: collect ${{ github.event.inputs.year }} race results"
+            git commit -m "data: collect race results (${{ github.event.inputs.years }})"
             git push
           fi
