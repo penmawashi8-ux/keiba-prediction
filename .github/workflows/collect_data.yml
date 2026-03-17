@@ -15,6 +15,10 @@ on:
         description: '並列ワーカー数 (デフォルト: 10)'
         required: false
         default: '10'
+      run_predictions:
+        description: '収集後に当日の予測も実行する (true / false)'
+        required: false
+        default: 'false'
 
 permissions:
   contents: write
@@ -112,3 +116,10 @@ jobs:
             git commit -m "data: collect race results (${{ github.event.inputs.years }})"
             git push
           fi
+
+  # run_predictions=true のとき、収集完了後に予測ワークフローを呼び出す
+  run-predictions:
+    needs: commit
+    if: ${{ github.event.inputs.run_predictions == 'true' }}
+    uses: ./.github/workflows/update_predictions.yml
+    secrets: inherit

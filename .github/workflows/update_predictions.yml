@@ -11,6 +11,14 @@ on:
         description: '対象日 YYYYMMDD (省略時: 実行日 JST)'
         required: false
         default: ''
+  # collect_data.yml など他ワークフローから呼び出し可能
+  workflow_call:
+    inputs:
+      date:
+        description: '対象日 YYYYMMDD (省略時: 実行日 JST)'
+        required: false
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -38,9 +46,11 @@ jobs:
 
       - name: Run prediction
         run: |
+          # workflow_dispatch と workflow_call の両方で date を取得
+          DATE="${{ inputs.date || github.event.inputs.date }}"
           DATE_ARG=""
-          if [ -n "${{ github.event.inputs.date }}" ]; then
-            DATE_ARG="--date ${{ github.event.inputs.date }}"
+          if [ -n "$DATE" ]; then
+            DATE_ARG="--date $DATE"
           fi
           python src/predict/predict_today.py $DATE_ARG
 
