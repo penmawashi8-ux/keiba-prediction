@@ -36,7 +36,7 @@ ROOT        = Path(__file__).resolve().parents[2]
 MODEL_TXT   = ROOT / "src" / "model" / "lgbm_model.txt"
 HORSE_STATS = ROOT / "src" / "model" / "horse_stats.csv"
 JOCKEY_STATS= ROOT / "src" / "model" / "jockey_stats.csv"
-OUT_PATH    = ROOT / "web" / "predictions" / "latest.json"
+OUT_PATH    = ROOT / "docs" / "predictions" / "latest.json"
 
 MIN_PRED_PROB = 0.08
 MAX_ODDS      = 20.0

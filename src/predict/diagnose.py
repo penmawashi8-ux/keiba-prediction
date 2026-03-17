@@ -115,7 +115,7 @@ def main():
         "shutuba_analysis": analysis,
     }
 
-    out = pathlib.Path("web/predictions/debug.json")
+    out = pathlib.Path("docs/predictions/debug.json")
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(result, ensure_ascii=False, indent=2))
     print(json.dumps(result, ensure_ascii=False, indent=2))
