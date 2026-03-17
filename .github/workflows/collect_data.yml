@@ -11,6 +11,10 @@ on:
         description: '競馬場コード (空白=全場, 例: 05=東京)'
         required: false
         default: ''
+      workers:
+        description: '並列ワーカー数 (デフォルト: 10)'
+        required: false
+        default: '10'
 
 permissions:
   contents: write
@@ -39,7 +43,7 @@ jobs:
           if [ -n "${{ github.event.inputs.venue }}" ]; then
             VENUE_ARG="--venue ${{ github.event.inputs.venue }}"
           fi
-          python src/scraper/collect.py --year ${{ github.event.inputs.year }} $VENUE_ARG
+          python src/scraper/collect.py --year ${{ github.event.inputs.year }} $VENUE_ARG --workers ${{ github.event.inputs.workers }}
 
       - name: Upload CSV as artifact
         uses: actions/upload-artifact@v4

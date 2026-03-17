@@ -1,20 +1,21 @@
 """
-netkeiba.com JRA競馬データ収集スクリプト
+netkeiba.com JRA競馬データ収集スクリプト（非同期並列版）
 
 Usage:
     python collect.py --year 2023
     python collect.py --year 2023 --venue 05  # 東京のみ
+    python collect.py --year 2023 --workers 10  # 並列数指定（デフォルト: 10）
 """
 
 import argparse
+import asyncio
 import csv
 import logging
 import random
 import re
-import time
 from pathlib import Path
 
-import requests
+import aiohttp
 from bs4 import BeautifulSoup
 
 # ─── 設定 ────────────────────────────────────────────────────────────────────
@@ -64,60 +65,42 @@ def setup_logger(year: int) -> logging.Logger:
     return logger
 
 
-# ─── スクレイピング ───────────────────────────────────────────────────────────
-
-def fetch_html(url: str) -> bytes | None:
-    """HTMLを取得して生バイト列を返す（EUC-JP前提）。失敗時はNoneを返す。"""
-    try:
-        resp = requests.get(url, headers=HEADERS, timeout=15)
-        resp.raise_for_status()
-        return resp.content
-    except requests.RequestException:
-        return None
-
+# ─── パース ──────────────────────────────────────────────────────────────────
 
 def parse_race_page(race_id: str, html: bytes) -> list[dict]:
     """レース結果ページをパースしてFIELDNAMESのdictのリストを返す。"""
     soup = BeautifulSoup(html, "lxml", from_encoding=ENCODING)
 
-    # ── レース基本情報 ─────────────────────────────────────────────
     race_name = ""
     name_tag = soup.find("h1", class_=re.compile(r"RaceName"))
     if name_tag:
         race_name = name_tag.get_text(strip=True)
 
-    # 日付
     date_str = ""
     race_data1 = soup.find("div", class_=re.compile(r"RaceData01"))
     if race_data1:
         spans = race_data1.find_all("span")
         if spans:
-            date_str = spans[0].get_text(strip=True)  # 例: 2023年1月5日
+            date_str = spans[0].get_text(strip=True)
 
-    # 距離・コース・芝ダート・天気・馬場
     surface, distance, course, weather, condition = "", "", "", "", ""
     race_data2 = soup.find("div", class_=re.compile(r"RaceData02"))
     if race_data2:
         text = race_data2.get_text(" ", strip=True)
-        # 芝/ダート・距離
         m = re.search(r"([芝ダ障])(\d+)m", text)
         if m:
             surface = "芝" if m.group(1) == "芝" else ("障" if m.group(1) == "障" else "ダート")
             distance = m.group(2)
-        # コース方向 (右, 左, 右内, 左内, 直線 など)
         m2 = re.search(r"(右|左)(外|内)?|直線", text)
         if m2:
             course = m2.group(0)
-        # 天気
         m3 = re.search(r"天候\s*[:：]\s*(\S+)", text)
         if m3:
             weather = m3.group(1)
-        # 馬場状態
         m4 = re.search(r"馬場\s*[:：]\s*(\S+)", text)
         if m4:
             condition = m4.group(1)
 
-    # race_id の構造から競馬場コードを取り出す
     venue_code = race_id[4:6]
     venue_name = VENUES.get(venue_code, venue_code)
 
@@ -133,13 +116,12 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
         "weather":   weather,
     }
 
-    # ── 着順テーブル ──────────────────────────────────────────────
-    records = []
     result_table = soup.find("table", class_=re.compile(r"ResultTableWrap|race_table_01"))
     if result_table is None:
         return []
 
-    rows = result_table.find_all("tr")[1:]  # ヘッダ除外
+    records = []
+    rows = result_table.find_all("tr")[1:]
     for row in rows:
         cells = row.find_all("td")
         if len(cells) < 10:
@@ -148,7 +130,6 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
         def cell(i: int) -> str:
             return cells[i].get_text(strip=True) if i < len(cells) else ""
 
-        # horse_id を href から取得
         horse_id = ""
         horse_link = row.find("a", href=re.compile(r"/horse/"))
         if horse_link:
@@ -156,21 +137,20 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
             if m:
                 horse_id = m.group(1)
 
-        rec = {
+        records.append({
             **base,
-            "horse_num":   cell(2),
-            "order":       cell(0),
-            "horse_name":  cell(3),
-            "horse_id":    horse_id,
-            "jockey":      cell(6),
-            "weight":      cell(5),
-            "time":        cell(7),
-            "last_3f":     cell(11),
-            "odds":        cell(12),
-            "popularity":  cell(13),
+            "horse_num":    cell(2),
+            "order":        cell(0),
+            "horse_name":   cell(3),
+            "horse_id":     horse_id,
+            "jockey":       cell(6),
+            "weight":       cell(5),
+            "time":         cell(7),
+            "last_3f":      cell(11),
+            "odds":         cell(12),
+            "popularity":   cell(13),
             "horse_weight": cell(14),
-        }
-        records.append(rec)
+        })
 
     return records
 
@@ -178,77 +158,107 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
 # ─── race_id 生成 ─────────────────────────────────────────────────────────────
 
 def generate_race_ids(year: int, venue_filter: str | None = None) -> list[str]:
-    """
-    指定年のすべての race_id 候補を生成する。
-    netkeiba の構造: 各開催 最大12R × 最大8日 × 回 最大6 × 競馬場10場
-    実際に存在しないレースは fetch 時にスキップする。
-    """
     ids = []
     venues = [venue_filter] if venue_filter else list(VENUES.keys())
     for v in venues:
-        for r in range(1, 7):       # 回 1〜6
-            for d in range(1, 9):   # 日 1〜8
-                for n in range(1, 13):  # レース番号 1〜12
+        for r in range(1, 7):
+            for d in range(1, 9):
+                for n in range(1, 13):
                     ids.append(f"{year}{v}{r:02d}{d:02d}{n:02d}")
     return ids
 
 
+# ─── 非同期フェッチ ───────────────────────────────────────────────────────────
+
+async def fetch_html(session: aiohttp.ClientSession, url: str) -> bytes | None:
+    try:
+        async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+            if resp.status != 200:
+                return None
+            return await resp.read()
+    except Exception:
+        return None
+
+
+async def process_race(
+    session: aiohttp.ClientSession,
+    semaphore: asyncio.Semaphore,
+    race_id: str,
+    logger: logging.Logger,
+) -> list[dict]:
+    async with semaphore:
+        url = f"{BASE_URL}/race/{race_id}/"
+        content = await fetch_html(session, url)
+
+        # ワーカーごとに短いランダム待機（サーバー負荷分散）
+        await asyncio.sleep(random.uniform(0.3, 0.5))
+
+        if content is None:
+            logger.warning(f"SKIP (fetch error): {race_id}")
+            return []
+
+        try:
+            records = parse_race_page(race_id, content)
+        except Exception as e:
+            logger.warning(f"SKIP (parse error): {race_id} - {e}")
+            return []
+
+        if records:
+            logger.info(f"OK: {race_id} ({len(records)}頭)")
+        else:
+            logger.debug(f"NO DATA: {race_id}")
+
+        return records
+
+
 # ─── メイン処理 ──────────────────────────────────────────────────────────────
 
-def collect(year: int, venue_filter: str | None, logger: logging.Logger) -> None:
+async def collect_async(year: int, venue_filter: str | None, workers: int, logger: logging.Logger) -> None:
     out_path = DATA_DIR / f"{year}_races.csv"
     race_ids = generate_race_ids(year, venue_filter)
 
-    logger.info(f"収集開始: year={year}, venue={venue_filter or 'all'}, 候補={len(race_ids)}件")
+    logger.info(f"収集開始: year={year}, venue={venue_filter or 'all'}, 候補={len(race_ids)}件, 並列数={workers}")
 
-    with open(out_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
-        writer.writeheader()
+    semaphore = asyncio.Semaphore(workers)
+    connector = aiohttp.TCPConnector(limit=workers)
 
-        skipped = 0
-        saved = 0
+    async with aiohttp.ClientSession(headers=HEADERS, connector=connector) as session:
+        tasks = [
+            process_race(session, semaphore, race_id, logger)
+            for race_id in race_ids
+        ]
 
-        for race_id in race_ids:
-            url = f"{BASE_URL}/race/{race_id}/"
-            content = fetch_html(url)
+        with open(out_path, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
+            writer.writeheader()
 
-            if content is None:
-                logger.warning(f"SKIP (fetch error): {race_id}")
-                skipped += 1
-                time.sleep(random.uniform(2, 4))
-                continue
+            saved = 0
+            skipped = 0
 
-            try:
-                records = parse_race_page(race_id, content)
-            except Exception as e:
-                logger.warning(f"SKIP (parse error): {race_id} - {e}")
-                skipped += 1
-                time.sleep(random.uniform(2, 4))
-                continue
-
-            if not records:
-                logger.debug(f"NO DATA: {race_id}")
-                time.sleep(random.uniform(2, 4))
-                continue
-
-            writer.writerows(records)
-            f.flush()
-            saved += len(records)
-            logger.info(f"OK: {race_id} ({len(records)}頭)")
-
-            time.sleep(random.uniform(2, 4))
+            for coro in asyncio.as_completed(tasks):
+                records = await coro
+                if records:
+                    writer.writerows(records)
+                    f.flush()
+                    saved += len(records)
+                elif records is not None:
+                    skipped += 1
 
     logger.info(f"完了: {saved}レコード保存, {skipped}件スキップ → {out_path}")
+
+
+def collect(year: int, venue_filter: str | None, workers: int, logger: logging.Logger) -> None:
+    asyncio.run(collect_async(year, venue_filter, workers, logger))
 
 
 # ─── エントリーポイント ───────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="netkeiba JRAレース結果収集")
-    parser.add_argument("--year",  type=int, required=True, help="対象年 (例: 2023)")
-    parser.add_argument("--venue", type=str, default=None,
-                        help="競馬場コード絞り込み (例: 05=東京)")
+    parser = argparse.ArgumentParser(description="netkeiba JRAレース結果収集（並列版）")
+    parser.add_argument("--year",    type=int, required=True, help="対象年 (例: 2023)")
+    parser.add_argument("--venue",   type=str, default=None,  help="競馬場コード絞り込み (例: 05=東京)")
+    parser.add_argument("--workers", type=int, default=10,    help="並列ワーカー数 (デフォルト: 10)")
     args = parser.parse_args()
 
     logger = setup_logger(args.year)
-    collect(args.year, args.venue, logger)
+    collect(args.year, args.venue, args.workers, logger)

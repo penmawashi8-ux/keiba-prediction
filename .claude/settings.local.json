@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd /home/user/keiba-prediction && git push github HEAD:main 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}
