@@ -73,30 +73,34 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
 
     # race_name / surface / distance / course / weather / condition は
     # dl.racedata に集約されている
-    # 例: "1 R 3歳未勝利 芝右2000m / 天候 : 晴 / 芝 : 良 / 発走 : 10:01"
+    # dd 構造例: "3歳未勝利 芝右2000m / 天候 : 晴 / 芝 : 良 / 発走 : 10:01"
+    #           "御堂筋ステークス(3勝) 芝右 外2400m / 天候 : 雨 / 芝 : 重 / ..."
     race_name = ""
     surface, distance, course, weather, condition = "", "", "", "", ""
     racedata_dl = soup.find("dl", class_=re.compile(r"racedata"))
     if racedata_dl:
-        # race_name: 最初の dd タグ
+        text = racedata_dl.get_text(" ", strip=True)
+        # race_name: dd の先頭から surface 記号の手前まで
         dd = racedata_dl.find("dd")
         if dd:
-            race_name = dd.get_text(strip=True)
-        text = racedata_dl.get_text(" ", strip=True)
-        # surface / distance: "芝右2000m" / "ダ1600m"
-        m = re.search(r"([芝ダ障])(?:右外|右内|右|左外|左内|左|直線)?(\d+)m", text)
+            dd_text = dd.get_text(strip=True)
+            m_name = re.match(r"^(.+?)\s+[芝ダ障]", dd_text)
+            race_name = m_name.group(1).strip() if m_name else dd_text
+        # surface / distance: "芝右2000m" / "芝右 外2400m" / "ダ1600m"
+        # \s* で "右 外" のような空白入りも許容
+        m = re.search(r"([芝ダ障])\s*(?:右\s*外|右\s*内|右|左\s*外|左\s*内|左|直線)?\s*(\d+)m", text)
         if m:
             surface = "芝" if m.group(1) == "芝" else ("障" if m.group(1) == "障" else "ダート")
             distance = m.group(2)
-        # course direction
-        m2 = re.search(r"[芝ダ障](右外|右内|右|左外|左内|左|直線)", text)
+        # course direction (空白を正規化: "右 外" → "右外")
+        m2 = re.search(r"[芝ダ障]\s*(右\s*外|右\s*内|右|左\s*外|左\s*内|左|直線)", text)
         if m2:
-            course = m2.group(1)
+            course = re.sub(r"\s+", "", m2.group(1))
         # weather: "天候 : 晴"
         m3 = re.search(r"天候\s*[:：]\s*(\S+)", text)
         if m3:
             weather = m3.group(1)
-        # condition: "芝 : 良" / "ダート : 良" (スペースで区別)
+        # condition: "芝 : 良" / "ダート : 良" (スペースで course 記号と区別)
         m4 = re.search(r"(?:芝|ダート|障)\s+[:：]\s*(\S+)", text)
         if m4:
             condition = m4.group(1)
