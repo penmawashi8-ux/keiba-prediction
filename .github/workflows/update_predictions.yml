@@ -68,8 +68,20 @@ jobs:
           echo "HTML length : $HTML_LEN bytes"
           echo "Race IDs    : $RACE_COUNT"
           echo "HTML preview: $HTML_PREVIEW"
+          # Also test one shutuba page
+          FIRST_RACE_ID=$(grep -oP 'race_id=\d{12,}' /tmp/netkeiba_resp.html 2>/dev/null | head -1 | grep -oP '\d{12,}' || echo "")
+          SHUTUBA_STATUS="N/A"
+          SHUTUBA_LEN=0
+          SHUTUBA_TABLE="no"
+          if [ -n "$FIRST_RACE_ID" ]; then
+            SHUTUBA_STATUS=$(curl -s -o /tmp/shutuba_resp.html -w "%{http_code}" -A "$UA" -H "Referer: https://race.netkeiba.com/" --max-time 15 "https://race.netkeiba.com/race/shutuba.html?race_id=${FIRST_RACE_ID}" 2>/dev/null || echo "000")
+            SHUTUBA_LEN=$(wc -c < /tmp/shutuba_resp.html 2>/dev/null || echo 0)
+            SHUTUBA_TABLE=$(grep -oi 'ShutubaTabe\|shutuba_table\|ShutubaTable\|RaceTableName\|Shutuba\|HorseName\|RaceTable01' /tmp/shutuba_resp.html 2>/dev/null | head -3 | tr '\n' ',' || echo "none")
+          fi
           # Commit diagnostic JSON so we can read it via API
-          printf '{"date":"%s","http_status":"%s","html_bytes":%s,"race_ids_found":%s}\n' "$DATE" "$STATUS" "$HTML_LEN" "$RACE_COUNT" > web/predictions/debug.json
+          printf '{"date":"%s","race_list_status":"%s","race_list_bytes":%s,"race_ids_found":%s,"first_race_id":"%s","shutuba_status":"%s","shutuba_bytes":%s,"shutuba_classes":"%s"}\n' \
+            "$DATE" "$STATUS" "$HTML_LEN" "$RACE_COUNT" "$FIRST_RACE_ID" "$SHUTUBA_STATUS" "$SHUTUBA_LEN" "$SHUTUBA_TABLE" \
+            > web/predictions/debug.json
 
       - name: Run prediction
         run: |
