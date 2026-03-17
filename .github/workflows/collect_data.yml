@@ -1,0 +1,61 @@
+name: Collect Race Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      year:
+        description: '対象年 (例: 2023)'
+        required: true
+        default: '2023'
+      venue:
+        description: '競馬場コード (空白=全場, 例: 05=東京)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360  # 最大6時間
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run scraper
+        run: |
+          VENUE_ARG=""
+          if [ -n "${{ github.event.inputs.venue }}" ]; then
+            VENUE_ARG="--venue ${{ github.event.inputs.venue }}"
+          fi
+          python src/scraper/collect.py --year ${{ github.event.inputs.year }} $VENUE_ARG
+
+      - name: Upload CSV as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: race-data-${{ github.event.inputs.year }}
+          path: data/raw/${{ github.event.inputs.year }}_races.csv
+          retention-days: 30
+
+      - name: Commit and push data
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/raw/
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "data: collect ${{ github.event.inputs.year }} race results"
+            git push
+          fi
