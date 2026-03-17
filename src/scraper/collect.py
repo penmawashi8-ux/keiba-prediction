@@ -32,10 +32,10 @@ DATA_DIR = Path(__file__).resolve().parents[2] / "data" / "raw"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 FIELDNAMES = [
-    "race_id", "race_name", "date", "venue", "round", "day", "race_num",
-    "distance", "surface", "track_condition", "weather",
-    "order", "horse_name", "horse_id", "jockey", "weight_carried",
-    "time", "last_3f", "odds", "popularity", "horse_weight",
+    "race_id", "race_name", "date", "venue", "course", "distance",
+    "surface", "condition", "weather",
+    "horse_num", "order", "horse_name", "horse_id",
+    "jockey", "weight", "time", "last_3f", "odds", "popularity", "horse_weight",
 ]
 
 HEADERS = {
@@ -67,17 +67,17 @@ def setup_logger(year: int) -> logging.Logger:
 # ─── スクレイピング ───────────────────────────────────────────────────────────
 
 def fetch_html(url: str) -> bytes | None:
-    """HTMLを取得して生バイト列を返す（EUC-JP前提）。"""
+    """HTMLを取得して生バイト列を返す（EUC-JP前提）。失敗時はNoneを返す。"""
     try:
         resp = requests.get(url, headers=HEADERS, timeout=15)
         resp.raise_for_status()
         return resp.content
-    except requests.RequestException as e:
+    except requests.RequestException:
         return None
 
 
 def parse_race_page(race_id: str, html: bytes) -> list[dict]:
-    """レース結果ページをパースしてレコードリストを返す。"""
+    """レース結果ページをパースしてFIELDNAMESのdictのリストを返す。"""
     soup = BeautifulSoup(html, "lxml", from_encoding=ENCODING)
 
     # ── レース基本情報 ─────────────────────────────────────────────
@@ -86,54 +86,51 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
     if name_tag:
         race_name = name_tag.get_text(strip=True)
 
-    # 日付・競馬場
-    race_data_tag = soup.find("div", class_=re.compile(r"RaceData01"))
+    # 日付
     date_str = ""
-    if race_data_tag:
-        spans = race_data_tag.find_all("span")
+    race_data1 = soup.find("div", class_=re.compile(r"RaceData01"))
+    if race_data1:
+        spans = race_data1.find_all("span")
         if spans:
             date_str = spans[0].get_text(strip=True)  # 例: 2023年1月5日
 
-    # 距離・芝ダート・天気・馬場
-    surface, distance, weather, track_condition = "", "", "", ""
+    # 距離・コース・芝ダート・天気・馬場
+    surface, distance, course, weather, condition = "", "", "", "", ""
     race_data2 = soup.find("div", class_=re.compile(r"RaceData02"))
     if race_data2:
         text = race_data2.get_text(" ", strip=True)
-        # 距離・芝ダート
+        # 芝/ダート・距離
         m = re.search(r"([芝ダ障])(\d+)m", text)
         if m:
             surface = "芝" if m.group(1) == "芝" else ("障" if m.group(1) == "障" else "ダート")
             distance = m.group(2)
-        # 天気
-        m2 = re.search(r"天候\s*[:：]\s*(\S+)", text)
+        # コース方向 (右, 左, 右内, 左内, 直線 など)
+        m2 = re.search(r"(右|左)(外|内)?|直線", text)
         if m2:
-            weather = m2.group(1)
-        # 馬場
-        m3 = re.search(r"馬場\s*[:：]\s*(\S+)", text)
+            course = m2.group(0)
+        # 天気
+        m3 = re.search(r"天候\s*[:：]\s*(\S+)", text)
         if m3:
-            track_condition = m3.group(1)
+            weather = m3.group(1)
+        # 馬場状態
+        m4 = re.search(r"馬場\s*[:：]\s*(\S+)", text)
+        if m4:
+            condition = m4.group(1)
 
-    # race_id の構造から venue/round/day/race_num を取り出す
-    # race_id = {year(4)}{venue(2)}{round(2)}{day(2)}{race_num(2)}
-    year_str   = race_id[0:4]
+    # race_id の構造から競馬場コードを取り出す
     venue_code = race_id[4:6]
-    round_num  = race_id[6:8].lstrip("0") or "0"
-    day_num    = race_id[8:10].lstrip("0") or "0"
-    race_num   = race_id[10:12].lstrip("0") or "0"
     venue_name = VENUES.get(venue_code, venue_code)
 
     base = {
-        "race_id": race_id,
+        "race_id":   race_id,
         "race_name": race_name,
-        "date": date_str,
-        "venue": venue_name,
-        "round": round_num,
-        "day": day_num,
-        "race_num": race_num,
-        "distance": distance,
-        "surface": surface,
-        "track_condition": track_condition,
-        "weather": weather,
+        "date":      date_str,
+        "venue":     venue_name,
+        "course":    course,
+        "distance":  distance,
+        "surface":   surface,
+        "condition": condition,
+        "weather":   weather,
     }
 
     # ── 着順テーブル ──────────────────────────────────────────────
@@ -148,7 +145,7 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
         if len(cells) < 10:
             continue
 
-        def cell(i):
+        def cell(i: int) -> str:
             return cells[i].get_text(strip=True) if i < len(cells) else ""
 
         # horse_id を href から取得
@@ -159,17 +156,19 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
             if m:
                 horse_id = m.group(1)
 
-        rec = {**base,
-            "order":          cell(0),
-            "horse_name":     cell(3),
-            "horse_id":       horse_id,
-            "jockey":         cell(6),
-            "weight_carried": cell(5),
-            "time":           cell(7),
-            "last_3f":        cell(11),
-            "odds":           cell(12),
-            "popularity":     cell(13),
-            "horse_weight":   cell(14),
+        rec = {
+            **base,
+            "horse_num":   cell(2),
+            "order":       cell(0),
+            "horse_name":  cell(3),
+            "horse_id":    horse_id,
+            "jockey":      cell(6),
+            "weight":      cell(5),
+            "time":        cell(7),
+            "last_3f":     cell(11),
+            "odds":        cell(12),
+            "popularity":  cell(13),
+            "horse_weight": cell(14),
         }
         records.append(rec)
 
@@ -228,7 +227,6 @@ def collect(year: int, venue_filter: str | None, logger: logging.Logger) -> None
                 continue
 
             if not records:
-                # レースが存在しない（空ページ）は静かにスキップ
                 logger.debug(f"NO DATA: {race_id}")
                 time.sleep(random.uniform(2, 4))
                 continue
