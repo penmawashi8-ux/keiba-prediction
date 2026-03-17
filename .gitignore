@@ -43,7 +43,6 @@ htmlcov/
 Thumbs.db
 
 # Data directories (local only)
-data/raw/
 data/processed/
 
 # Logs
