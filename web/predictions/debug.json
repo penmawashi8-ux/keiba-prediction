@@ -159,6 +159,209 @@
     "race_name_tags": [
       "����ë����"
     ],
-    "html_len": 233252
+    "html_len": 233252,
+    "shutuba_table_cell_classes": [
+      [],
+      [
+        {
+          "class": [
+            "Waku",
+            "Txt_C"
+          ],
+          "text": ""
+        },
+        {
+          "class": [
+            "Umaban",
+            "Txt_C"
+          ],
+          "text": ""
+        },
+        {
+          "class": [
+            "CheckMark",
+            "Horse_Select"
+          ],
+          "text": "--����������&#10003��"
+        },
+        {
+          "class": [
+            "HorseInfo"
+          ],
+          "text": "��������"
+        },
+        {
+          "class": [
+            "Barei",
+            "Txt_C"
+          ],
+          "text": "��7"
+        },
+        {
+          "class": [
+            "Txt_C"
+          ],
+          "text": "58.0"
+        },
+        {
+          "class": [
+            "Jockey"
+          ],
+          "text": "������"
+        },
+        {
+          "class": [
+            "Trainer"
+          ],
+          "text": "��������"
+        },
+        {
+          "class": [
+            "Weight"
+          ],
+          "text": ""
+        },
+        {
+          "class": [
+            "Txt_R",
+            "Popular"
+          ],
+          "text": "---.-"
+        },
+        {
+          "class": [
+            "Popular",
+            "Popular_Ninki",
+            "Txt_C"
+          ],
+          "text": "**"
+        },
+        {
+          "class": [
+            "FavRegist",
+            "Txt_C"
+          ],
+          "text": ""
+        },
+        {
+          "class": [
+            "FavMemo"
+          ],
+          "text": ""
+        },
+        {
+          "class": [
+            "Note0"
+          ],
+          "text": "�Խ�"
+        },
+        {
+          "class": [
+            "Note1"
+          ],
+          "text": "�Խ�"
+        }
+      ],
+      [
+        {
+          "class": [
+            "Waku",
+            "Txt_C"
+          ],
+          "text": ""
+        },
+        {
+          "class": [
+            "Umaban",
+            "Txt_C"
+          ],
+          "text": ""
+        },
+        {
+          "class": [
+            "CheckMark",
+            "Horse_Select"
+          ],
+          "text": "--����������&#10003��"
+        },
+        {
+          "class": [
+            "HorseInfo"
+          ],
+          "text": "���ѥå�����"
+        },
+        {
+          "class": [
+            "Barei",
+            "Txt_C"
+          ],
+          "text": "��4"
+        },
+        {
+          "class": [
+            "Txt_C"
+          ],
+          "text": "58.0"
+        },
+        {
+          "class": [
+            "Jockey"
+          ],
+          "text": "��쥤��"
+        },
+        {
+          "class": [
+            "Trainer"
+          ],
+          "text": "������"
+        },
+        {
+          "class": [
+            "Weight"
+          ],
+          "text": ""
+        },
+        {
+          "class": [
+            "Txt_R",
+            "Popular"
+          ],
+          "text": "---.-"
+        },
+        {
+          "class": [
+            "Popular",
+            "Popular_Ninki",
+            "Txt_C"
+          ],
+          "text": "**"
+        },
+        {
+          "class": [
+            "FavRegist",
+            "Txt_C"
+          ],
+          "text": ""
+        },
+        {
+          "class": [
+            "FavMemo"
+          ],
+          "text": ""
+        },
+        {
+          "class": [
+            "Note0"
+          ],
+          "text": "�Խ�"
+        },
+        {
+          "class": [
+            "Note1"
+          ],
+          "text": "�Խ�"
+        }
+      ]
+    ]
   }
 }
