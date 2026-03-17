@@ -55,8 +55,10 @@ async def fetch_race_ids(
 ) -> list[str]:
     """当日の全 race_id を返す。"""
     url = f"{RACE_LIST_URL}?kaisai_date={date_str}"
+    logger.info(f"Fetching race list: {url}")
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+            logger.info(f"race_list HTTP status: {resp.status}")
             if resp.status != 200:
                 logger.warning(f"race_list fetch failed: HTTP {resp.status}")
                 return []
@@ -80,7 +82,9 @@ async def fetch_race_ids(
             seen.add(rid)
             unique.append(rid)
 
-    logger.info(f"race_list: {date_str} → {len(unique)} races")
+    logger.info(f"race_list: {date_str} → {len(unique)} races found")
+    if len(unique) == 0:
+        logger.warning(f"No race_ids in HTML. Total <a> tags: {len(soup.find_all('a'))}")
     return unique
 
 
