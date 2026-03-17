@@ -84,7 +84,7 @@ def parse_race_page(race_id: str, html: bytes) -> list[dict]:
         dd = racedata_dl.find("dd")
         if dd:
             dd_text = dd.get_text(strip=True)
-            m_name = re.match(r"^(.+?)\s+[芝ダ障]", dd_text)
+            m_name = re.match(r"^(.+?)\s*[芝ダ障](?=\s*(?:右|左|直|\d))", dd_text)
             race_name = m_name.group(1).strip() if m_name else dd_text
         # surface / distance: "芝右2000m" / "芝右 外2400m" / "ダ1600m"
         # \s* で "右 外" のような空白入りも許容
