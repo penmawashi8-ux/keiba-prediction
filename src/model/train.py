@@ -168,6 +168,114 @@ def ev_simulation(model: lgb.Booster, df: pd.DataFrame, label: str):
     print(f"  odds 中央値     : {bets['odds'].median():.1f}")
 
 
+# ─── 閾値チューニング ────────────────────────────────────────────────────────
+
+PROB_THRESHOLDS = [0.05, 0.08, 0.10, 0.12, 0.15]
+ODDS_LIMITS     = [10, 20, 30, 50, None]   # None = 制限なし
+
+def _recovery(bets: pd.DataFrame) -> tuple[int, float, float]:
+    """(買い目数, 的中率, 回収率) を返す。"""
+    n   = len(bets)
+    if n == 0:
+        return 0, 0.0, 0.0
+    hits = int(bets["is_win"].sum())
+    rec  = (bets["is_win"] * bets["odds"]).sum() / n
+    return n, hits / n, rec
+
+
+def tune_threshold(model: lgb.Booster, df: pd.DataFrame, label: str):
+    """
+    pred_prob 下限 × odds 上限の全組み合わせを探索し、
+    2024年テストデータで回収率が最大の条件を特定する。
+    """
+    d = df.dropna(subset=["odds"]).copy()
+    d["pred_prob"]    = model.predict(d[FEATURE_COLS])
+    d["implied_prob"] = 1.0 / d["odds"]
+    # ベース条件: 期待値プラス
+    d = d[d["pred_prob"] > d["implied_prob"]]
+
+    odds_labels = [str(o) if o else "∞" for o in ODDS_LIMITS]
+    col_w = 9  # 各セルの幅
+
+    # ─ ヘッダ ─
+    header_label = f"{'pred>':>6}"
+    header_odds  = f"  {'odds上限':^{col_w * len(ODDS_LIMITS) + len(ODDS_LIMITS) - 1}}"
+    print(f"\n閾値チューニング [{label}]  ─ 回収率 (買い目数)")
+    print(f"  {'':<6}  " + "  ".join(f"{'≤'+ol:>{col_w}}" if ol != "∞" else f"{'制限なし':>{col_w}}" for ol in odds_labels))
+    print("  " + "-" * (8 + (col_w + 2) * len(ODDS_LIMITS)))
+
+    best = {"rec": 0.0, "prob": None, "odds": None}
+
+    for prob_th in PROB_THRESHOLDS:
+        row_cells = []
+        sub = d[d["pred_prob"] >= prob_th]
+        for odds_lim in ODDS_LIMITS:
+            bets = sub if odds_lim is None else sub[sub["odds"] <= odds_lim]
+            n, hit, rec = _recovery(bets)
+            row_cells.append(f"{rec:6.1%}({n:,})")
+            if rec > best["rec"]:
+                best = {"rec": rec, "prob": prob_th, "odds": odds_lim, "n": n, "hit": hit}
+        print(f"  {prob_th:>5.2f}  " + "  ".join(f"{c:>{col_w}}" for c in row_cells))
+
+    print()
+    odds_str = f"≤{best['odds']}" if best["odds"] else "制限なし"
+    print(f"  ★ 最高回収率: {best['rec']:.2%}  "
+          f"(pred_prob≥{best['prob']}, odds {odds_str}, 買い目={best['n']:,})")
+
+
+# ─── 人気別回収率分析 ─────────────────────────────────────────────────────────
+
+def popularity_analysis(model: lgb.Booster, df: pd.DataFrame, label: str):
+    """
+    レース内オッズ順位（= 人気）でグループ化し、
+    EV+ フィルタ前後それぞれの的中率・回収率を出力する。
+    オッズが同着の場合は同順位扱い（method='min'）。
+    """
+    d = df.dropna(subset=["odds"]).copy()
+    d["pred_prob"]    = model.predict(d[FEATURE_COLS])
+    d["implied_prob"] = 1.0 / d["odds"]
+    # レース内オッズランク (1=最低オッズ=1番人気)
+    d["pop_rank"] = d.groupby("race_id")["odds"].rank(method="min", ascending=True).astype(int)
+
+    def band(r):
+        if r <= 3:   return "1〜3番人気"
+        if r <= 6:   return "4〜6番人気"
+        return               "7番人気以下"
+
+    d["pop_band"] = d["pop_rank"].map(band)
+
+    BANDS = ["1〜3番人気", "4〜6番人気", "7番人気以下"]
+    col_names = ["人気帯", "買い目数", "的中数", "的中率", "回収率", "(EV+)買い目", "(EV+)的中率", "(EV+)回収率"]
+    W = [12, 8, 7, 8, 8, 10, 10, 10]
+
+    header = "  " + "  ".join(f"{n:>{w}}" for n, w in zip(col_names, W))
+    print(f"\n人気別回収率分析 [{label}]")
+    print(header)
+    print("  " + "-" * (sum(W) + 2 * len(W)))
+
+    for band_name in BANDS:
+        g     = d[d["pop_band"] == band_name]
+        n     = len(g)
+        n_win = int(g["is_win"].sum())
+        rec   = (g["is_win"] * g["odds"]).sum() / n if n else 0.0
+
+        ev    = g[g["pred_prob"] > g["implied_prob"]]
+        ne    = len(ev)
+        ne_win = int(ev["is_win"].sum())
+        rece  = (ev["is_win"] * ev["odds"]).sum() / ne if ne else 0.0
+
+        print(
+            f"  {band_name:>{W[0]}}  "
+            f"{n:>{W[1]},}  "
+            f"{n_win:>{W[2]},}  "
+            f"{n_win/n:>{W[3]}.2%}  "
+            f"{rec:>{W[4]}.2%}  "
+            f"{ne:>{W[5]},}  "
+            f"{ne_win/ne if ne else 0:>{W[6]}.2%}  "
+            f"{rece:>{W[7]}.2%}"
+        )
+
+
 # ─── モデル保存 ──────────────────────────────────────────────────────────────
 
 def save_model(model: lgb.Booster):
@@ -197,6 +305,14 @@ def main():
 
     ev_simulation(model, valid, "2023 検証")
     ev_simulation(model, test,  "2024 テスト")
+
+    print("\n--- 閾値チューニング (2024 テストで最適化) ---")
+    tune_threshold(model, valid, "2023 検証")
+    tune_threshold(model, test,  "2024 テスト")
+
+    print("\n--- 人気別回収率分析 ---")
+    popularity_analysis(model, valid, "2023 検証")
+    popularity_analysis(model, test,  "2024 テスト")
 
     save_model(model)
     print("\n完了")
