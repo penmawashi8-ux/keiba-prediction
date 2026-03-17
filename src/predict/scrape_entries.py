@@ -62,7 +62,12 @@ async def fetch_race_ids(
             if resp.status != 200:
                 logger.warning(f"race_list fetch failed: HTTP {resp.status}")
                 return []
-            html = await resp.text(encoding="utf-8", errors="replace")
+            charset = resp.charset or "euc-jp"
+            raw = await resp.read()
+            try:
+                html = raw.decode(charset, errors="replace")
+            except (LookupError, UnicodeDecodeError):
+                html = raw.decode("utf-8", errors="replace")
     except Exception as e:
         logger.warning(f"race_list fetch error: {e}")
         return []
@@ -143,6 +148,7 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
         return None
 
     horses = []
+    horse_seq = 0
     for row in table.find_all("tr"):
         # HorseList クラス or td が十分ある行
         cells = row.find_all("td")
@@ -153,11 +159,14 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
             return tag.get_text(strip=True) if tag else ""
 
         # 馬番: Umaban クラス or 2列目
+        # レース直前でない場合は枠順未確定で空になることがある → 連番をフォールバックに使う
         umaban_td = row.find("td", class_=re.compile(r"Umaban|umaban", re.I))
         horse_num_str = _text(umaban_td) if umaban_td else _text(cells[1])
-        if not horse_num_str.isdigit():
-            continue
-        horse_num = int(horse_num_str)
+        if horse_num_str.isdigit():
+            horse_num = int(horse_num_str)
+        else:
+            # 未確定の場合はシーケンシャル番号を使用（馬名チェックを先に行う）
+            horse_num = None  # 後で確定
 
         # 馬名 + horse_id
         # 旧: class="HorseName" / 新: class="HorseInfo"
@@ -216,6 +225,11 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
         if not horse_name:
             continue
 
+        # 馬番が未確定の場合は連番を割り当て
+        if horse_num is None:
+            horse_seq += 1
+            horse_num = horse_seq
+
         horses.append({
             "horse_num":      horse_num,
             "horse_name":     horse_name,
@@ -262,7 +276,13 @@ async def fetch_shutuba(
                 if resp.status != 200:
                     logger.warning(f"shutuba fetch failed {race_id}: HTTP {resp.status}")
                     return None
-                html = await resp.text(encoding="utf-8", errors="replace")
+                # Content-Type のcharset を優先し、不明な場合は EUC-JP を試みる
+                charset = resp.charset or "euc-jp"
+                raw = await resp.read()
+                try:
+                    html = raw.decode(charset, errors="replace")
+                except (LookupError, UnicodeDecodeError):
+                    html = raw.decode("utf-8", errors="replace")
         except Exception as e:
             logger.warning(f"shutuba fetch error {race_id}: {e}")
             return None
