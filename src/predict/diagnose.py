@@ -57,6 +57,17 @@ def analyze_shutuba(html: str) -> dict:
     for td in soup.find_all(["td", "div"], class_=re.compile(r"HorseName|horsename", re.I))[:5]:
         horse_name_tds.append(td.get_text(strip=True)[:50])
 
+    # ShutubaTable の最初の2行の td クラスを調べる
+    shutuba_table_cell_classes = []
+    shutuba_tbl = soup.find("table", class_=re.compile(r"ShutubaTable|Shutuba_Table", re.I))
+    if shutuba_tbl:
+        for row in shutuba_tbl.find_all("tr")[1:4]:  # skip header
+            row_classes = []
+            for td in row.find_all("td"):
+                cls = td.get("class", [])
+                row_classes.append({"class": cls, "text": td.get_text(strip=True)[:30]})
+            shutuba_table_cell_classes.append(row_classes)
+
     # レース名
     race_name_tags = []
     for tag in soup.find_all(["h1", "h2", "div"], class_=re.compile(r"RaceName|race_name", re.I))[:3]:
@@ -69,6 +80,7 @@ def analyze_shutuba(html: str) -> dict:
         "horse_name_tds": horse_name_tds,
         "race_name_tags": race_name_tags,
         "html_len": len(html),
+        "shutuba_table_cell_classes": shutuba_table_cell_classes,
     }
 
 
