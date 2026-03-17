@@ -37,6 +37,7 @@ FEATURE_COLS = [
     "horse_win_rate_surface",
     "jockey_win_rate_100",
     "jockey_win_rate_venue",   # 仕様の jockey_win_rate_course に相当
+    "popularity",              # レース内オッズ昇順ランク (1=1番人気)
 ]
 
 LGBM_PARAMS = {
@@ -106,8 +107,8 @@ def train_model(train: pd.DataFrame, valid: pd.DataFrame) -> lgb.Booster:
 # ─── 評価: AUC ───────────────────────────────────────────────────────────────
 
 def evaluate_auc(model: lgb.Booster, df: pd.DataFrame, label: str) -> float:
-    X   = df[FEATURE_COLS]
-    y   = df["is_win"].astype(int)
+    X    = df[FEATURE_COLS]
+    y    = df["is_win"].astype(int)
     pred = model.predict(X)
     auc  = roc_auc_score(y, pred)
     print(f"  AUC [{label}]: {auc:.4f}")
@@ -141,29 +142,21 @@ def ev_simulation(model: lgb.Booster, df: pd.DataFrame, label: str):
     d = df.dropna(subset=["odds"]).copy()
     d["pred_prob"]    = model.predict(d[FEATURE_COLS])
     d["implied_prob"] = 1.0 / d["odds"]
-    d["is_ev_plus"]   = d["pred_prob"] > d["implied_prob"]
 
-    bets = d[d["is_ev_plus"]].copy()
-
+    bets = d[d["pred_prob"] > d["implied_prob"]]
     if len(bets) == 0:
         print(f"\n期待値シミュレーション [{label}]: 対象買い目なし")
         return
 
-    n_bets   = len(bets)
-    n_wins   = int(bets["is_win"].sum())
-    hit_rate = n_wins / n_bets
-
-    # 払い戻し: 的中時に odds 倍を受け取る (購入は各100円想定)
-    payout       = (bets["is_win"] * bets["odds"]).sum()
-    recovery     = payout / n_bets  # 100円賭けたときの回収率
+    n      = len(bets)
+    n_wins = int(bets["is_win"].sum())
+    rec    = (bets["is_win"] * bets["odds"]).sum() / n
 
     print(f"\n期待値シミュレーション [{label}]:")
-    print(f"  対象買い目数    : {n_bets:,}")
+    print(f"  対象買い目数    : {n:,}")
     print(f"  的中数          : {n_wins:,}")
-    print(f"  的中率          : {hit_rate:.2%}")
-    print(f"  回収率          : {recovery:.2%}  (100円賭け換算)")
-
-    # 予測確率の分布確認
+    print(f"  的中率          : {n_wins/n:.2%}")
+    print(f"  回収率          : {rec:.2%}  (100円賭け換算)")
     print(f"  pred_prob 中央値: {bets['pred_prob'].median():.4f}")
     print(f"  odds 中央値     : {bets['odds'].median():.1f}")
 
@@ -175,7 +168,7 @@ ODDS_LIMITS     = [10, 20, 30, 50, None]   # None = 制限なし
 
 def _recovery(bets: pd.DataFrame) -> tuple[int, float, float]:
     """(買い目数, 的中率, 回収率) を返す。"""
-    n   = len(bets)
+    n = len(bets)
     if n == 0:
         return 0, 0.0, 0.0
     hits = int(bets["is_win"].sum())
@@ -186,26 +179,24 @@ def _recovery(bets: pd.DataFrame) -> tuple[int, float, float]:
 def tune_threshold(model: lgb.Booster, df: pd.DataFrame, label: str):
     """
     pred_prob 下限 × odds 上限の全組み合わせを探索し、
-    2024年テストデータで回収率が最大の条件を特定する。
+    回収率が最大の条件を特定する。
     """
     d = df.dropna(subset=["odds"]).copy()
     d["pred_prob"]    = model.predict(d[FEATURE_COLS])
     d["implied_prob"] = 1.0 / d["odds"]
-    # ベース条件: 期待値プラス
     d = d[d["pred_prob"] > d["implied_prob"]]
 
     odds_labels = [str(o) if o else "∞" for o in ODDS_LIMITS]
-    col_w = 9  # 各セルの幅
+    col_w = 9
 
-    # ─ ヘッダ ─
-    header_label = f"{'pred>':>6}"
-    header_odds  = f"  {'odds上限':^{col_w * len(ODDS_LIMITS) + len(ODDS_LIMITS) - 1}}"
     print(f"\n閾値チューニング [{label}]  ─ 回収率 (買い目数)")
-    print(f"  {'':<6}  " + "  ".join(f"{'≤'+ol:>{col_w}}" if ol != "∞" else f"{'制限なし':>{col_w}}" for ol in odds_labels))
+    print(f"  {'':<6}  " + "  ".join(
+        f"{'≤'+ol:>{col_w}}" if ol != "∞" else f"{'制限なし':>{col_w}}"
+        for ol in odds_labels
+    ))
     print("  " + "-" * (8 + (col_w + 2) * len(ODDS_LIMITS)))
 
-    best = {"rec": 0.0, "prob": None, "odds": None}
-
+    best = {"rec": 0.0, "prob": None, "odds": None, "n": 0}
     for prob_th in PROB_THRESHOLDS:
         row_cells = []
         sub = d[d["pred_prob"] >= prob_th]
@@ -214,7 +205,7 @@ def tune_threshold(model: lgb.Booster, df: pd.DataFrame, label: str):
             n, hit, rec = _recovery(bets)
             row_cells.append(f"{rec:6.1%}({n:,})")
             if rec > best["rec"]:
-                best = {"rec": rec, "prob": prob_th, "odds": odds_lim, "n": n, "hit": hit}
+                best = {"rec": rec, "prob": prob_th, "odds": odds_lim, "n": n}
         print(f"  {prob_th:>5.2f}  " + "  ".join(f"{c:>{col_w}}" for c in row_cells))
 
     print()
@@ -227,43 +218,38 @@ def tune_threshold(model: lgb.Booster, df: pd.DataFrame, label: str):
 
 def popularity_analysis(model: lgb.Booster, df: pd.DataFrame, label: str):
     """
-    レース内オッズ順位（= 人気）でグループ化し、
-    EV+ フィルタ前後それぞれの的中率・回収率を出力する。
-    オッズが同着の場合は同順位扱い（method='min'）。
+    popularity (レース内オッズ順位) でグループ化し、
+    EV+ フィルタ前後の的中率・回収率を出力する。
     """
     d = df.dropna(subset=["odds"]).copy()
     d["pred_prob"]    = model.predict(d[FEATURE_COLS])
     d["implied_prob"] = 1.0 / d["odds"]
-    # レース内オッズランク (1=最低オッズ=1番人気)
-    d["pop_rank"] = d.groupby("race_id")["odds"].rank(method="min", ascending=True).astype(int)
 
     def band(r):
-        if r <= 3:   return "1〜3番人気"
-        if r <= 6:   return "4〜6番人気"
-        return               "7番人気以下"
+        if r <= 3:  return "1〜3番人気"
+        if r <= 6:  return "4〜6番人気"
+        return              "7番人気以下"
 
-    d["pop_band"] = d["pop_rank"].map(band)
+    d["pop_band"] = d["popularity"].map(band)
 
-    BANDS = ["1〜3番人気", "4〜6番人気", "7番人気以下"]
-    col_names = ["人気帯", "買い目数", "的中数", "的中率", "回収率", "(EV+)買い目", "(EV+)的中率", "(EV+)回収率"]
+    BANDS     = ["1〜3番人気", "4〜6番人気", "7番人気以下"]
+    col_names = ["人気帯", "買い目数", "的中数", "的中率", "回収率",
+                 "(EV+)買い目", "(EV+)的中率", "(EV+)回収率"]
     W = [12, 8, 7, 8, 8, 10, 10, 10]
 
-    header = "  " + "  ".join(f"{n:>{w}}" for n, w in zip(col_names, W))
     print(f"\n人気別回収率分析 [{label}]")
-    print(header)
+    print("  " + "  ".join(f"{n:>{w}}" for n, w in zip(col_names, W)))
     print("  " + "-" * (sum(W) + 2 * len(W)))
 
     for band_name in BANDS:
-        g     = d[d["pop_band"] == band_name]
-        n     = len(g)
-        n_win = int(g["is_win"].sum())
-        rec   = (g["is_win"] * g["odds"]).sum() / n if n else 0.0
-
-        ev    = g[g["pred_prob"] > g["implied_prob"]]
-        ne    = len(ev)
+        g      = d[d["pop_band"] == band_name]
+        n      = len(g)
+        n_win  = int(g["is_win"].sum())
+        rec    = (g["is_win"] * g["odds"]).sum() / n if n else 0.0
+        ev     = g[g["pred_prob"] > g["implied_prob"]]
+        ne     = len(ev)
         ne_win = int(ev["is_win"].sum())
-        rece  = (ev["is_win"] * ev["odds"]).sum() / ne if ne else 0.0
-
+        rece   = (ev["is_win"] * ev["odds"]).sum() / ne if ne else 0.0
         print(
             f"  {band_name:>{W[0]}}  "
             f"{n:>{W[1]},}  "
@@ -273,6 +259,64 @@ def popularity_analysis(model: lgb.Booster, df: pd.DataFrame, label: str):
             f"{ne:>{W[5]},}  "
             f"{ne_win/ne if ne else 0:>{W[6]}.2%}  "
             f"{rece:>{W[7]}.2%}"
+        )
+
+
+# ─── 条件別回収率比較 ─────────────────────────────────────────────────────────
+
+def condition_comparison(model: lgb.Booster, valid: pd.DataFrame, test: pd.DataFrame):
+    """
+    以下 3 条件での買い目数・的中率・回収率を 2023/2024 で比較する。
+      A: pred_prob ≥ 0.08 かつ odds ≤ 20
+      B: A かつ popularity ≤ 6
+      C: A かつ popularity ≤ 9
+    """
+    CONDITIONS = [
+        ("pred≥0.08 & odds≤20",              lambda d: (d["pred_prob"] >= 0.08) & (d["odds"] <= 20)),
+        ("pred≥0.08 & odds≤20 & pop≤6",      lambda d: (d["pred_prob"] >= 0.08) & (d["odds"] <= 20) & (d["popularity"] <= 6)),
+        ("pred≥0.08 & odds≤20 & pop≤9",      lambda d: (d["pred_prob"] >= 0.08) & (d["odds"] <= 20) & (d["popularity"] <= 9)),
+    ]
+
+    col_names = ["条件", "2023買い目", "2023的中率", "2023回収率", "2024買い目", "2024的中率", "2024回収率"]
+    W         = [28, 10, 10, 10, 10, 10, 10]
+
+    print("\n条件別回収率比較  (EV+ ベース: pred_prob > 1/odds)")
+    print("  " + "  ".join(f"{n:>{w}}" for n, w in zip(col_names, W)))
+    print("  " + "-" * (sum(W) + 2 * len(W)))
+
+    for label, dfs in [("2023", valid), ("2024", test)]:
+        d = dfs.dropna(subset=["odds"]).copy()
+        d["pred_prob"]    = model.predict(d[FEATURE_COLS])
+        d["implied_prob"] = 1.0 / d["odds"]
+        # EV+ ベース
+        if label == "2023":
+            valid_pred = d
+        else:
+            test_pred = d
+
+    rows = []
+    for cond_label, cond_fn in CONDITIONS:
+        row = [cond_label]
+        for d in [valid_pred, test_pred]:
+            bets = d[d["pred_prob"] > d["implied_prob"]]  # EV+ フィルタ
+            bets = bets[cond_fn(bets)]
+            n      = len(bets)
+            n_win  = int(bets["is_win"].sum())
+            rec    = (bets["is_win"] * bets["odds"]).sum() / n if n else 0.0
+            hit    = n_win / n if n else 0.0
+            row += [n, hit, rec]
+        rows.append(row)
+
+    for r in rows:
+        cond, n23, hit23, rec23, n24, hit24, rec24 = r
+        print(
+            f"  {cond:>{W[0]}}  "
+            f"{n23:>{W[1]},}  "
+            f"{hit23:>{W[2]}.2%}  "
+            f"{rec23:>{W[3]}.2%}  "
+            f"{n24:>{W[4]},}  "
+            f"{hit24:>{W[5]}.2%}  "
+            f"{rec24:>{W[6]}.2%}"
         )
 
 
@@ -288,7 +332,7 @@ def save_model(model: lgb.Booster):
 
 def main():
     print("=" * 60)
-    print("LightGBM 学習開始")
+    print("LightGBM 学習開始  (特徴量: popularity 追加)")
     print("=" * 60)
 
     train, valid, test = load_and_split()
@@ -306,13 +350,16 @@ def main():
     ev_simulation(model, valid, "2023 検証")
     ev_simulation(model, test,  "2024 テスト")
 
-    print("\n--- 閾値チューニング (2024 テストで最適化) ---")
+    print("\n--- 閾値チューニング ---")
     tune_threshold(model, valid, "2023 検証")
     tune_threshold(model, test,  "2024 テスト")
 
     print("\n--- 人気別回収率分析 ---")
     popularity_analysis(model, valid, "2023 検証")
     popularity_analysis(model, test,  "2024 テスト")
+
+    print("\n--- 条件別回収率比較 ---")
+    condition_comparison(model, valid, test)
 
     save_model(model)
     print("\n完了")

@@ -77,6 +77,13 @@ def preprocess(df: pd.DataFrame) -> pd.DataFrame:
     # 距離帯（200m 刻み）
     df["dist_band"] = (df["distance_m"] // 200 * 200).astype("Int64")
 
+    # 人気: レース内オッズ昇順ランク（同オッズは同順位）
+    df["popularity"] = (
+        df.groupby("race_id")["odds"]
+        .rank(method="min", ascending=True)
+        .astype("Int64")
+    )
+
     # 時系列順にソート（同一 date 内は race_id → horse_num で一意）
     df = df.sort_values(["date", "race_id", "horse_num"]).reset_index(drop=True)
 
@@ -184,6 +191,8 @@ def build():
         "horse_win_rate_dist", "horse_win_rate_venue", "horse_win_rate_surface",
         # 騎手
         "jockey_win_rate_100", "jockey_win_rate_venue",
+        # レース内人気
+        "popularity",
         # ターゲット
         "is_win", "odds",
     ]
