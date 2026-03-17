@@ -52,40 +52,25 @@ jobs:
         run: |
           DATE="${{ inputs.date || github.event.inputs.date }}"
           if [ -z "$DATE" ]; then
-            DATE=$(python3 -c "
-from datetime import datetime, timezone, timedelta
-print(datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d'))
-")
+            DATE=$(python3 -c "from datetime import datetime,timezone,timedelta; print(datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d'))")
           fi
           echo "=== Target date: $DATE ==="
-          WEEKDAY=$(python3 -c "
-from datetime import datetime
-d = datetime.strptime('$DATE', '%Y%m%d')
-days = ['月', '火', '水', '木', '金', '土', '日']
-print(days[d.weekday()])
-")
+          WEEKDAY=$(python3 -c "from datetime import datetime; d=datetime.strptime('$DATE','%Y%m%d'); print(['月','火','水','木','金','土','日'][d.weekday()])")
           echo "Day of week (JST): $WEEKDAY"
           if [[ "$WEEKDAY" != "土" && "$WEEKDAY" != "日" ]]; then
-            echo "⚠ Warning: JRAレースは通常土日のみ開催。$WEEKDAY 曜日はレースがない可能性があります。"
+            echo "Warning: JRAレースは通常土日のみ開催。$WEEKDAY 曜日はレースがない可能性があります。"
           fi
           echo ""
           echo "=== Testing netkeiba connectivity ==="
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-            -H "Referer: https://race.netkeiba.com/" \
-            --max-time 15 \
-            "https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=${DATE}" 2>/dev/null || echo "000")
+          UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+          URL="https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=${DATE}"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -A "$UA" -H "Referer: https://race.netkeiba.com/" --max-time 15 "$URL" 2>/dev/null || echo "000")
           echo "HTTP status: $STATUS"
           if [ "$STATUS" = "200" ]; then
-            RACE_COUNT=$(curl -s \
-              -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
-              -H "Referer: https://race.netkeiba.com/" \
-              --max-time 15 \
-              "https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=${DATE}" 2>/dev/null \
-              | grep -oP 'race_id=\d{12,}' | sort -u | wc -l || echo "0")
-            echo "✓ netkeiba accessible — Race IDs found: $RACE_COUNT"
+            RACE_COUNT=$(curl -s -A "$UA" -H "Referer: https://race.netkeiba.com/" --max-time 15 "$URL" 2>/dev/null | grep -oP 'race_id=\d{12,}' | sort -u | wc -l || echo "0")
+            echo "netkeiba accessible — Race IDs found in HTML: $RACE_COUNT"
           else
-            echo "✗ netkeiba returned HTTP $STATUS — race data may be unavailable"
+            echo "netkeiba returned HTTP $STATUS — race data may be unavailable"
           fi
 
       - name: Run prediction
@@ -95,22 +80,6 @@ print(days[d.weekday()])
           DATE_ARG=""
           if [ -n "$DATE" ]; then
             DATE_ARG="--date $DATE"
-          fi
-          DEBUG="${{ inputs.debug || 'false' }}"
-          if [ "$DEBUG" = "true" ]; then
-            echo "=== Debug mode: verbose scraper output ==="
-            python - <<PYEOF
-import logging, asyncio, sys
-logging.basicConfig(level=logging.DEBUG, stream=sys.stdout,
-    format="%(asctime)s [%(levelname)s] %(message)s")
-sys.path.insert(0, ".")
-from src.predict.scrape_entries import scrape_today_async
-date_arg = "$DATE" if "$DATE" else None
-races = asyncio.run(scrape_today_async(date_arg))
-print(f"=== Scraper returned {len(races)} races ===")
-for r in races:
-    print(f"  {r['race_id']} {r.get('race_name','?')} ({len(r.get('horses',[]))}頭)")
-PYEOF
           fi
           python src/predict/predict_today.py $DATE_ARG
 
