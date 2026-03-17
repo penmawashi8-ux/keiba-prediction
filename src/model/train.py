@@ -16,10 +16,13 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import roc_auc_score
 
-FEATURES_PATH = Path(__file__).resolve().parents[2] / "data" / "processed" / "features.csv"
-MODEL_DIR     = Path(__file__).resolve().parent
+FEATURES_PATH  = Path(__file__).resolve().parents[2] / "data" / "processed" / "features.csv"
+MODEL_DIR      = Path(__file__).resolve().parent
 MODEL_DIR.mkdir(parents=True, exist_ok=True)
-MODEL_PATH    = MODEL_DIR / "lgbm_model.pkl"
+MODEL_PATH_PKL = MODEL_DIR / "lgbm_model.pkl"   # ローカル用 (gitignore 対象)
+MODEL_PATH_TXT = MODEL_DIR / "lgbm_model.txt"   # GitHub Actions 用 (コミット可)
+HORSE_STATS    = MODEL_DIR / "horse_stats.csv"   # 馬の最新成績 (コミット可)
+JOCKEY_STATS   = MODEL_DIR / "jockey_stats.csv"  # 騎手の最新成績 (コミット可)
 
 FEATURE_COLS = [
     "distance_m",
@@ -64,17 +67,17 @@ def load_and_split():
     df["year"] = df["date"].dt.year
 
     # is_win が NaN（中止・除外）は学習対象外
-    df = df.dropna(subset=["is_win"])
+    df_valid = df.dropna(subset=["is_win"])
 
-    train = df[df["year"] <= 2022]
-    valid = df[df["year"] == 2023]
-    test  = df[df["year"] == 2024]
+    train = df_valid[df_valid["year"] <= 2022]
+    valid = df_valid[df_valid["year"] == 2023]
+    test  = df_valid[df_valid["year"] == 2024]
 
     print(f"学習: {len(train):,}行 ({train['year'].min()}〜{train['year'].max()})")
     print(f"検証: {len(valid):,}行 ({valid['year'].min()})")
     print(f"テスト: {len(test):,}行 ({test['year'].min()})")
     print(f"勝率 — 学習:{train['is_win'].mean():.4f}  検証:{valid['is_win'].mean():.4f}  テスト:{test['is_win'].mean():.4f}")
-    return train, valid, test
+    return train, valid, test, df  # df は stats export 用（NaN行含む全データ）
 
 
 # ─── 学習 ────────────────────────────────────────────────────────────────────
@@ -320,12 +323,49 @@ def condition_comparison(model: lgb.Booster, valid: pd.DataFrame, test: pd.DataF
         )
 
 
+# ─── 馬・騎手の最新成績を export（予測パイプライン用） ────────────────────────
+
+HORSE_HIST_COLS  = [
+    "horse_avg_order_3", "horse_avg_order_5",
+    "horse_avg_last3f_3", "horse_avg_last3f_5",
+    "horse_win_rate_dist", "horse_win_rate_venue", "horse_win_rate_surface",
+]
+JOCKEY_HIST_COLS = ["jockey_win_rate_100", "jockey_win_rate_venue"]
+
+def export_stats(df: pd.DataFrame):
+    """
+    全期間データから馬・騎手ごとの「最新の」historical特徴量を抽出し CSV 保存。
+    predict_today.py がこれを読み込んで当日出走馬に結合する。
+    """
+    df_sorted = df.sort_values("date")
+
+    horse_stats = (
+        df_sorted.dropna(subset=["horse_id"])
+        .groupby("horse_id")[HORSE_HIST_COLS]
+        .last()
+    )
+    horse_stats.to_csv(HORSE_STATS)
+
+    jockey_stats = (
+        df_sorted.dropna(subset=["jockey"])
+        .groupby("jockey")[JOCKEY_HIST_COLS]
+        .last()
+    )
+    jockey_stats.to_csv(JOCKEY_STATS)
+
+    print(f"stats export: 馬 {len(horse_stats):,}頭 → {HORSE_STATS.name}")
+    print(f"stats export: 騎手 {len(jockey_stats):,}人 → {JOCKEY_STATS.name}")
+
+
 # ─── モデル保存 ──────────────────────────────────────────────────────────────
 
 def save_model(model: lgb.Booster):
-    with open(MODEL_PATH, "wb") as f:
+    # pickle (.pkl) — ローカル利用 (gitignore 対象)
+    with open(MODEL_PATH_PKL, "wb") as f:
         pickle.dump(model, f)
-    print(f"\nモデル保存: {MODEL_PATH}")
+    # LightGBM native text (.txt) — GitHub Actions 用にコミット可能
+    model.save_model(str(MODEL_PATH_TXT))
+    print(f"\nモデル保存: {MODEL_PATH_PKL.name}  /  {MODEL_PATH_TXT.name}")
 
 
 # ─── メイン ──────────────────────────────────────────────────────────────────
@@ -335,7 +375,7 @@ def main():
     print("LightGBM 学習開始  (特徴量: popularity 追加)")
     print("=" * 60)
 
-    train, valid, test = load_and_split()
+    train, valid, test, df_full = load_and_split()
 
     print("\n--- 学習中 ---")
     model = train_model(train, valid)
@@ -362,6 +402,10 @@ def main():
     condition_comparison(model, valid, test)
 
     save_model(model)
+
+    print("\n--- 予測パイプライン用 stats export ---")
+    export_stats(df_full)
+
     print("\n完了")
 
 

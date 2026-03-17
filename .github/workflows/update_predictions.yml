@@ -2,16 +2,23 @@ name: Update Predictions
 
 on:
   schedule:
-    # 毎週土曜 8:00 JST (= 23:00 UTC 金曜)
+    # 毎週土曜 8:00 JST (= 金曜 23:00 UTC)
+    # 前日オッズが確定した朝に実行
     - cron: '0 23 * * 5'
-  workflow_dispatch:  # 手動実行も可能
+  workflow_dispatch:
+    inputs:
+      date:
+        description: '対象日 YYYYMMDD (省略時: 実行日 JST)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
 
 jobs:
-  update:
+  predict:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
@@ -26,20 +33,49 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Run scraper
-        run: python src/scraper/main.py
+      # モデル (lgbm_model.txt) と stats CSV は src/model/ にコミット済み
+      # チェックアウトのみで利用可能 — 追加ダウンロード不要
 
-      - name: Update predictions JSON
-        run: python src/model/predict.py
+      - name: Run prediction
+        run: |
+          DATE_ARG=""
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            DATE_ARG="--date ${{ github.event.inputs.date }}"
+          fi
+          python src/predict/predict_today.py $DATE_ARG
+
+      - name: Show result summary
+        run: |
+          python - <<'EOF'
+          import json, pathlib
+          p = pathlib.Path("web/predictions/latest.json")
+          if not p.exists():
+              print("latest.json not found")
+              exit(0)
+          d = json.loads(p.read_text())
+          print(f"target_date : {d.get('target_date')}")
+          print(f"total_bets  : {d.get('total_bets')}")
+          print(f"total_races : {d.get('total_races')}")
+          for race in d.get("races", []):
+              for h in race.get("horses", []):
+                  print(f"  {race['venue']} {race['race_name']} "
+                        f"{h['horse_num']}番 {h['horse_name']} "
+                        f"odds={h['odds']} pred={h['pred_prob']:.3f}")
+          EOF
 
       - name: Commit and push predictions
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add web/predictions/
+          git add web/predictions/latest.json
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "chore: update predictions $(date +'%Y-%m-%d')"
+            TARGET=$(python -c "
+          import json, pathlib
+          d = json.loads(pathlib.Path('web/predictions/latest.json').read_text())
+          print(d.get('target_date', 'unknown'))
+            ")
+            git commit -m "chore: update predictions ${TARGET}"
             git push
           fi
