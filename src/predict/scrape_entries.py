@@ -160,9 +160,10 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
         horse_num = int(horse_num_str)
 
         # 馬名 + horse_id
+        # 旧: class="HorseName" / 新: class="HorseInfo"
         horse_name = ""
         horse_id   = ""
-        name_td    = row.find("td", class_=re.compile(r"HorseName|horsename", re.I))
+        name_td    = row.find("td", class_=re.compile(r"HorseInfo|HorseName|horsename", re.I))
         if name_td:
             a = name_td.find("a", href=re.compile(r"/horse/"))
             if a:
@@ -179,7 +180,14 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
             jockey = _text(a) if a else _text(jockey_td)
 
         # 斤量
+        # 旧: class="Futan" / 新: class="Txt_C" のみのセル (weight_carried)
         futan_td = row.find("td", class_=re.compile(r"Futan|futan", re.I))
+        if futan_td is None:
+            # 新構造: class がちょうど ["Txt_C"] だけのセルが斤量
+            for td in row.find_all("td"):
+                if td.get("class", []) == ["Txt_C"]:
+                    futan_td = td
+                    break
         weight_carried_str = _text(futan_td) if futan_td else ""
         try:
             weight_carried = float(weight_carried_str)
@@ -187,7 +195,8 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
             weight_carried = None
 
         # 馬体重: "480(+2)" → 480
-        hw_td = row.find("td", class_=re.compile(r"HorseWeight|horseweight", re.I))
+        # 旧: class="HorseWeight" / 新: class="Weight"
+        hw_td = row.find("td", class_=re.compile(r"Weight|HorseWeight|horseweight", re.I))
         horse_weight_kg = None
         if hw_td:
             m = re.search(r"^(\d+)", _text(hw_td))
@@ -195,7 +204,8 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
                 horse_weight_kg = int(m.group(1))
 
         # オッズ
-        odds_td = row.find("td", class_=re.compile(r"Odds|odds", re.I))
+        # 旧: class="Odds" / 新: class="Txt_R Popular" など
+        odds_td = row.find("td", class_=re.compile(r"Txt_R|Odds|odds", re.I))
         odds = None
         if odds_td:
             try:
