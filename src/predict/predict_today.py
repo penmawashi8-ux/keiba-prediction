@@ -144,9 +144,11 @@ def _nan_to_none(v):
 def build_json(df: pd.DataFrame, target_date: str) -> dict:
     """
     フィルタ済み DataFrame を latest.json 形式の dict に変換。
-    pred_prob >= MIN_PRED_PROB かつ odds <= MAX_ODDS の行のみ。
+    pred_prob >= MIN_PRED_PROB かつ (odds <= MAX_ODDS または odds 未確定) の行のみ。
+    オッズ未確定 (NaN) の場合はオッズフィルターをスキップする。
     """
-    mask = (df["pred_prob"] >= MIN_PRED_PROB) & (df["odds"] <= MAX_ODDS)
+    odds_ok = df["odds"].isna() | (df["odds"] <= MAX_ODDS)
+    mask = (df["pred_prob"] >= MIN_PRED_PROB) & odds_ok
     bets = df[mask].copy()
 
     generated_at = datetime.now(JST).strftime("%Y-%m-%dT%H:%M:%S+09:00")
