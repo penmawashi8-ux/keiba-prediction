@@ -1,11 +1,11 @@
 {
-  "date": "20260322",
+  "date": "20260315",
   "race_list_status": "200",
-  "race_list_bytes": 15948,
-  "race_ids_found": 9,
-  "first_race_id": "202606020809",
+  "race_list_bytes": 55141,
+  "race_ids_found": 36,
+  "first_race_id": "202606020601",
   "shutuba_status": "200",
-  "shutuba_bytes": 235691,
+  "shutuba_bytes": 254027,
   "shutuba_analysis": {
     "matching_tags": [
       {
@@ -133,7 +133,7 @@
           "ShutubaTable"
         ],
         "id": "",
-        "rows": 23
+        "rows": 18
       },
       {
         "class": [
@@ -141,41 +141,97 @@
         ],
         "id": "",
         "rows": 2
+      },
+      {
+        "class": [
+          "RaceCommon_Table",
+          "Race_HaronTime",
+          "isFreemium"
+        ],
+        "id": "",
+        "rows": 2
+      },
+      {
+        "class": [
+          "Shutuba_Table",
+          "RaceTable01",
+          "PredictRap_Table",
+          "NoCheckData",
+          "isFreemium"
+        ],
+        "id": "",
+        "rows": 3
+      },
+      {
+        "class": [
+          "RaceCommon_Table",
+          "PickupHorseTable01",
+          "AnaBestTable"
+        ],
+        "id": "",
+        "rows": 1
+      },
+      {
+        "class": [
+          "RaceCommon_Table",
+          "PickupHorseTable01",
+          "AnaBestTable"
+        ],
+        "id": "",
+        "rows": 1
+      },
+      {
+        "class": [
+          "RaceCommon_Table",
+          "PickupHorseTable01",
+          "AnaBestTable"
+        ],
+        "id": "",
+        "rows": 1
+      },
+      {
+        "class": [
+          "RaceCommon_Table",
+          "PickupHorseTable01",
+          "AnaBestTable"
+        ],
+        "id": "",
+        "rows": 1
       }
     ],
     "horse_links": [
-      "��������",
-      "���ѥå�����",
-      "���ޡ������",
-      "������饹",
-      "���ĥ�Υ����Υ�",
-      "���ͥ��祦�쥸����",
-      "���ܥ��Υۥ�",
-      "���ꥹ���륦����",
-      "���󥭥�",
-      "���������ĥ꡼��"
+      "����ǥ奨����",
+      "���ޡ����ץ�å���",
+      "�ĥ��ΥޥХ���",
+      "���ѥΥ�������",
+      "��󥰥���֥�å�",
+      "�ޥ����Х�",
+      "����쥤������",
+      "�˥��Υ��åѥ�",
+      "�Υ����ѡ��ԥꥪ",
+      "�֡����ɥꥹ"
     ],
     "horse_name_tds": [],
     "race_name_tags": [
-      "����ë����"
+      "3��̤����"
     ],
-    "html_len": 233252,
+    "html_len": 251263,
     "shutuba_table_cell_classes": [
       [],
       [
         {
           "class": [
-            "Waku",
+            "Waku1",
             "Txt_C"
           ],
-          "text": ""
+          "text": "1"
         },
         {
           "class": [
-            "Umaban",
+            "Umaban1",
             "Txt_C"
           ],
-          "text": ""
+          "text": "1"
         },
         {
           "class": [
@@ -188,20 +244,20 @@
           "class": [
             "HorseInfo"
           ],
-          "text": "��������"
+          "text": "����ǥ奨����"
         },
         {
           "class": [
             "Barei",
             "Txt_C"
           ],
-          "text": "��7"
+          "text": "��3"
         },
         {
           "class": [
             "Txt_C"
           ],
-          "text": "58.0"
+          "text": "55.0"
         },
         {
           "class": [
@@ -213,13 +269,13 @@
           "class": [
             "Trainer"
           ],
-          "text": "��������"
+          "text": "������ë"
         },
         {
           "class": [
             "Weight"
           ],
-          "text": ""
+          "text": "422(+4)"
         },
         {
           "class": [
@@ -265,17 +321,17 @@
       [
         {
           "class": [
-            "Waku",
+            "Waku1",
             "Txt_C"
           ],
-          "text": ""
+          "text": "1"
         },
         {
           "class": [
-            "Umaban",
+            "Umaban1",
             "Txt_C"
           ],
-          "text": ""
+          "text": "2"
         },
         {
           "class": [
@@ -288,38 +344,38 @@
           "class": [
             "HorseInfo"
           ],
-          "text": "���ѥå�����"
+          "text": "���ޡ����ץ�å���"
         },
         {
           "class": [
             "Barei",
             "Txt_C"
           ],
-          "text": "��4"
+          "text": "��3"
         },
         {
           "class": [
             "Txt_C"
           ],
-          "text": "58.0"
+          "text": "55.0"
         },
         {
           "class": [
             "Jockey"
           ],
-          "text": "��쥤��"
+          "text": "��"
         },
         {
           "class": [
             "Trainer"
           ],
-          "text": "������"
+          "text": "�������"
         },
         {
           "class": [
             "Weight"
           ],
-          "text": ""
+          "text": "484(-8)"
         },
         {
           "class": [
