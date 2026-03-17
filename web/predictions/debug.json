@@ -1,1 +1,164 @@
-{"date":"20260322","race_list_status":"200","race_list_bytes":15948,"race_ids_found":9,"first_race_id":"202606020809","shutuba_status":"200","shutuba_bytes":235691,"shutuba_classes":"shutuba,shutuba,shutuba,"}
+{
+  "date": "20260322",
+  "race_list_status": "200",
+  "race_list_bytes": 15948,
+  "race_ids_found": 9,
+  "first_race_id": "202606020809",
+  "shutuba_status": "200",
+  "shutuba_bytes": 235691,
+  "shutuba_analysis": {
+    "matching_tags": [
+      {
+        "tag": "div",
+        "class": [
+          "nk_AdvBox_pc",
+          "new_race_rectangle",
+          "race_shutuba"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "RaceTableArea"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "table",
+        "class": [
+          "Shutuba_Table",
+          "RaceTable01",
+          "ShutubaTable"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "Inner_Shutuba"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "Inner_Shutuba"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "Inner_Shutuba"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "Inner_Shutuba"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "Inner_Shutuba"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "NoteCheck_Inner",
+          "SelectedHorse"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "SelectedHorse",
+          "NoteCheck_Inner"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "NoteCheck_Inner",
+          "SelectedHorse"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "SelectedHorse",
+          "NoteCheck_Inner"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "NoteCheck_Inner",
+          "SelectedHorse"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "SelectedHorse",
+          "NoteCheck_Inner"
+        ],
+        "id": ""
+      },
+      {
+        "tag": "div",
+        "class": [
+          "NoteCheck_Inner",
+          "SelectedHorse"
+        ],
+        "id": ""
+      }
+    ],
+    "all_tables": [
+      {
+        "class": [
+          "Shutuba_Table",
+          "RaceTable01",
+          "ShutubaTable"
+        ],
+        "id": "",
+        "rows": 23
+      },
+      {
+        "class": [
+          "Table_Compatibility"
+        ],
+        "id": "",
+        "rows": 2
+      }
+    ],
+    "horse_links": [
+      "��������",
+      "���ѥå�����",
+      "���ޡ������",
+      "������饹",
+      "���ĥ�Υ����Υ�",
+      "���ͥ��祦�쥸����",
+      "���ܥ��Υۥ�",
+      "���ꥹ���륦����",
+      "���󥭥�",
+      "���������ĥ꡼��"
+    ],
+    "horse_name_tds": [],
+    "race_name_tags": [
+      "����ë����"
+    ],
+    "html_len": 233252
+  }
+}
