@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>競馬予測</title>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+      background: #f5f5f5;
+      color: #333;
+    }
+    h1 {
+      font-size: 2rem;
+      border-bottom: 3px solid #4a90d9;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .status {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .status p {
+      margin: 0;
+      color: #666;
+    }
+    .badge {
+      display: inline-block;
+      background: #e8f4fd;
+      color: #4a90d9;
+      border: 1px solid #b3d7f5;
+      border-radius: 4px;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.85rem;
+      margin-bottom: 0.5rem;
+    }
+    #predictions {
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th {
+      background: #4a90d9;
+      color: #fff;
+      padding: 0.6rem 0.8rem;
+      text-align: left;
+    }
+    td {
+      padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid #eee;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    tr:hover td {
+      background: #f0f7ff;
+    }
+    .placeholder {
+      color: #999;
+      text-align: center;
+      padding: 2rem;
+    }
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #aaa;
+    }
+  </style>
+</head>
+<body>
+  <h1>競馬予測</h1>
+
+  <div class="status">
+    <span class="badge">自動更新: 毎週土曜 8:00 JST</span>
+    <p>最新の予測結果を表示しています。データは GitHub Actions により自動的に更新されます。</p>
+  </div>
+
+  <div id="predictions">
+    <h2>今週の予測</h2>
+    <div id="content" class="placeholder">データを読み込み中...</div>
+  </div>
+
+  <footer>
+    Powered by LightGBM &amp; GitHub Actions &mdash;
+    <a href="https://github.com/penmawashi8-ux/keiba-prediction">GitHub</a>
+  </footer>
+
+  <script>
+    async function loadPredictions() {
+      const container = document.getElementById('content');
+      try {
+        const res = await fetch('predictions/latest.json');
+        if (!res.ok) throw new Error('not found');
+        const data = await res.json();
+
+        if (!data.races || data.races.length === 0) {
+          container.textContent = '予測データがありません。';
+          return;
+        }
+
+        let html = `<p style="color:#666;font-size:0.9rem;">更新日時: ${data.updated_at || '不明'}</p>`;
+        html += '<table><thead><tr><th>レース</th><th>馬名</th><th>予測スコア</th></tr></thead><tbody>';
+        for (const race of data.races) {
+          for (const horse of race.horses) {
+            html += `<tr>
+              <td>${race.name}</td>
+              <td>${horse.name}</td>
+              <td>${horse.score !== undefined ? horse.score.toFixed(3) : '-'}</td>
+            </tr>`;
+          }
+        }
+        html += '</tbody></table>';
+        container.innerHTML = html;
+      } catch {
+        container.textContent = '予測データはまだ準備されていません。GitHub Actions が初回実行されると表示されます。';
+      }
+    }
+
+    loadPredictions();
+  </script>
+</body>
+</html>
