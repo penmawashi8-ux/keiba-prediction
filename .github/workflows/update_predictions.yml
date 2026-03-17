@@ -55,23 +55,21 @@ jobs:
             DATE=$(python3 -c "from datetime import datetime,timezone,timedelta; print(datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d'))")
           fi
           echo "=== Target date: $DATE ==="
-          WEEKDAY=$(python3 -c "from datetime import datetime; d=datetime.strptime('$DATE','%Y%m%d'); print(['月','火','水','木','金','土','日'][d.weekday()])")
-          echo "Day of week (JST): $WEEKDAY"
-          if [[ "$WEEKDAY" != "土" && "$WEEKDAY" != "日" ]]; then
-            echo "Warning: JRAレースは通常土日のみ開催。$WEEKDAY 曜日はレースがない可能性があります。"
-          fi
-          echo ""
-          echo "=== Testing netkeiba connectivity ==="
           UA="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
           URL="https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=${DATE}"
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -A "$UA" -H "Referer: https://race.netkeiba.com/" --max-time 15 "$URL" 2>/dev/null || echo "000")
-          echo "HTTP status: $STATUS"
+          STATUS=$(curl -s -o /tmp/netkeiba_resp.html -w "%{http_code}" -A "$UA" -H "Referer: https://race.netkeiba.com/" --max-time 15 "$URL" 2>/dev/null || echo "000")
+          HTML_LEN=$(wc -c < /tmp/netkeiba_resp.html 2>/dev/null || echo 0)
+          RACE_COUNT=0
           if [ "$STATUS" = "200" ]; then
-            RACE_COUNT=$(curl -s -A "$UA" -H "Referer: https://race.netkeiba.com/" --max-time 15 "$URL" 2>/dev/null | grep -oP 'race_id=\d{12,}' | sort -u | wc -l || echo "0")
-            echo "netkeiba accessible — Race IDs found in HTML: $RACE_COUNT"
-          else
-            echo "netkeiba returned HTTP $STATUS — race data may be unavailable"
+            RACE_COUNT=$(grep -oP 'race_id=\d{12,}' /tmp/netkeiba_resp.html 2>/dev/null | sort -u | wc -l || echo 0)
           fi
+          HTML_PREVIEW=$(head -c 200 /tmp/netkeiba_resp.html 2>/dev/null | tr -d '\n\r' || echo "")
+          echo "HTTP status : $STATUS"
+          echo "HTML length : $HTML_LEN bytes"
+          echo "Race IDs    : $RACE_COUNT"
+          echo "HTML preview: $HTML_PREVIEW"
+          # Commit diagnostic JSON so we can read it via API
+          printf '{"date":"%s","http_status":"%s","html_bytes":%s,"race_ids_found":%s}\n' "$DATE" "$STATUS" "$HTML_LEN" "$RACE_COUNT" > web/predictions/debug.json
 
       - name: Run prediction
         run: |
@@ -109,7 +107,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add web/predictions/latest.json
+          git add web/predictions/latest.json web/predictions/debug.json
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
