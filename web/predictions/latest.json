@@ -1,65 +1,13 @@
 {
-  "generated_at": "2026-03-15T08:00:00+09:00",
-  "updated_at": "2026-03-15T08:00:00+09:00",
+  "generated_at": "2026-03-18T00:12:12+09:00",
+  "updated_at": "2026-03-18T00:12:12+09:00",
   "target_date": "2026-03-15",
   "filter_conditions": {
     "min_pred_prob": 0.08,
     "max_odds": 20.0
   },
-  "total_bets": 3,
-  "total_races": 2,
-  "races": [
-    {
-      "race_id": "202606010901",
-      "race_name": "チューリップ賞(G2)",
-      "venue": "阪神",
-      "race_num": 9,
-      "surface": "芝",
-      "distance_m": 1600,
-      "condition": "良",
-      "horses": [
-        {
-          "horse_num": 2,
-          "horse_name": "サンプルホースA",
-          "jockey": "武豊",
-          "odds": 3.5,
-          "popularity": 1,
-          "pred_prob": 0.213,
-          "weight_carried": 54.0,
-          "horse_weight_kg": 454
-        },
-        {
-          "horse_num": 7,
-          "horse_name": "サンプルホースB",
-          "jockey": "川田将雅",
-          "odds": 12.1,
-          "popularity": 4,
-          "pred_prob": 0.095,
-          "weight_carried": 54.0,
-          "horse_weight_kg": 462
-        }
-      ]
-    },
-    {
-      "race_id": "202606010910",
-      "race_name": "フィリーズレビュー(G2)",
-      "venue": "阪神",
-      "race_num": 10,
-      "surface": "芝",
-      "distance_m": 1400,
-      "condition": "良",
-      "horses": [
-        {
-          "horse_num": 5,
-          "horse_name": "サンプルホースC",
-          "jockey": "福永祐一",
-          "odds": 8.7,
-          "popularity": 3,
-          "pred_prob": 0.112,
-          "weight_carried": 54.0,
-          "horse_weight_kg": 448
-        }
-      ]
-    }
-  ]
+  "total_bets": 0,
+  "total_races": 0,
+  "races": [],
+  "note": "出走馬データを取得できませんでした"
 }
