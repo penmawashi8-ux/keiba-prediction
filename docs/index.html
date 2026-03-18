@@ -11,6 +11,7 @@
       --blue:    #2563eb;
       --blue-lt: #eff6ff;
       --green:   #16a34a;
+      --amber:   #d97706;
       --border:  #e5e7eb;
       --muted:   #6b7280;
       --bg:      #f9fafb;
@@ -60,6 +61,45 @@
       padding: 0.15rem 0.7rem;
       font-size: 0.78rem;
       font-weight: 700;
+    }
+
+    /* ── タブバー ── */
+    #tab-bar-wrap {
+      background: #fff;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 0 1rem;
+    }
+    #tab-bar {
+      display: inline-flex;
+      gap: 0;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      border-bottom: 3px solid transparent;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .tab-btn:hover { color: var(--blue); }
+    .tab-btn.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+    }
+    .tab-btn .tab-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--amber);
+      margin-left: 4px;
+      vertical-align: middle;
     }
 
     /* ── メインコンテンツ ── */
@@ -112,8 +152,35 @@
       vertical-align: middle;
     }
     .horse-table tbody tr:last-child td { border-bottom: none; }
-    .horse-table tbody tr:hover td { background: var(--blue-lt); }
     .horse-table .num { text-align: right; }
+
+    /* ── 推奨 / グレーアウト ── */
+    .horse-table tbody tr.recommended td {
+      background: #fffbeb;
+    }
+    .horse-table tbody tr.recommended:hover td {
+      background: #fef3c7;
+    }
+    .horse-table tbody tr.grayed td {
+      opacity: 0.45;
+    }
+    .horse-table tbody tr.grayed:hover td {
+      opacity: 0.6;
+    }
+
+    /* 推奨バッジ */
+    .badge-rec {
+      display: inline-block;
+      background: var(--amber);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      border-radius: 4px;
+      padding: 0.1rem 0.4rem;
+      margin-left: 0.35rem;
+      vertical-align: middle;
+      letter-spacing: 0.02em;
+    }
 
     /* 予測勝率バー */
     .prob-cell { min-width: 110px; }
@@ -134,12 +201,14 @@
       background: var(--green);
       border-radius: 999px;
     }
+    .prob-bar-fill.fill-rec { background: var(--amber); }
     .prob-val {
       font-weight: 700;
       color: var(--green);
       font-size: 0.85rem;
       white-space: nowrap;
     }
+    .prob-val.val-rec { color: var(--amber); }
 
     /* 人気バッジ */
     .pop-badge {
@@ -195,6 +264,10 @@
   <span id="meta-count"></span>
 </div>
 
+<div id="tab-bar-wrap" style="display:none">
+  <div id="tab-bar"></div>
+</div>
+
 <main>
   <div id="loading">データを読み込んでいます...</div>
   <div id="error-msg" style="display:none"></div>
@@ -207,6 +280,10 @@
 </footer>
 
 <script>
+  // ── 定数 ──
+  const REC_PROB = 0.08;
+  const REC_ODDS = 20;
+
   function fmt(v, d) {
     return v == null ? '―' : Number(v).toFixed(d ?? 1);
   }
@@ -217,16 +294,21 @@
     return `<span class="pop-badge ${cls}">${pop}</span>`;
   }
 
-  function probBar(prob) {
-    // バー幅: 25% 勝率でほぼ全幅になるよう ×4
+  function probBar(prob, isRec) {
     const fill = Math.min(prob * 100 * 4, 100).toFixed(1);
     const disp = (prob * 100).toFixed(1) + '%';
+    const fillCls = isRec ? 'prob-bar-fill fill-rec' : 'prob-bar-fill';
+    const valCls  = isRec ? 'prob-val val-rec' : 'prob-val';
     return `<div class="prob-bar-wrap">
       <div class="prob-bar-bg">
-        <div class="prob-bar-fill" style="width:${fill}%"></div>
+        <div class="${fillCls}" style="width:${fill}%"></div>
       </div>
-      <span class="prob-val">${disp}</span>
+      <span class="${valCls}">${disp}</span>
     </div>`;
+  }
+
+  function isRecommended(h) {
+    return h.pred_prob >= REC_PROB && h.odds != null && h.odds <= REC_ODDS;
   }
 
   function buildRaceCard(race) {
@@ -236,17 +318,22 @@
       race.condition,
     ].filter(Boolean);
 
-    const rows = race.horses.map(h => `<tr>
-      <td>${h.horse_num}番</td>
-      <td><strong>${h.horse_name}</strong></td>
-      <td>${h.jockey || '―'}</td>
-      <td class="num">${fmt(h.odds)} 倍</td>
-      <td class="num">${popBadge(h.popularity)}</td>
-      <td class="prob-cell">${probBar(h.pred_prob)}</td>
-      <td class="num col-weight" style="color:var(--muted);font-size:.8rem">
-        ${h.horse_weight_kg ? h.horse_weight_kg + 'kg' : '―'}
-      </td>
-    </tr>`).join('');
+    const rows = race.horses.map(h => {
+      const rec = isRecommended(h);
+      const trCls = rec ? 'recommended' : 'grayed';
+      const badge = rec ? '<span class="badge-rec">推奨</span>' : '';
+      return `<tr class="${trCls}">
+        <td>${h.horse_num}番</td>
+        <td><strong>${h.horse_name}</strong>${badge}</td>
+        <td>${h.jockey || '―'}</td>
+        <td class="num">${fmt(h.odds)} 倍</td>
+        <td class="num">${popBadge(h.popularity)}</td>
+        <td class="prob-cell">${probBar(h.pred_prob, rec)}</td>
+        <td class="num col-weight" style="color:var(--muted);font-size:.8rem">
+          ${h.horse_weight_kg ? h.horse_weight_kg + 'kg' : '―'}
+        </td>
+      </tr>`;
+    }).join('');
 
     return `<div class="race-card">
       <div class="race-header">
@@ -266,13 +353,27 @@
     </div>`;
   }
 
+  // ── タブ切り替え ──
+  let raceCards = [];   // {el, hasRec} per race index
+
+  function switchTab(idx) {
+    document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+      btn.classList.toggle('active', i === idx);
+    });
+    raceCards.forEach((card, i) => {
+      card.el.style.display = i === idx ? '' : 'none';
+    });
+  }
+
   async function loadPredictions() {
-    const loading   = document.getElementById('loading');
-    const errorEl   = document.getElementById('error-msg');
-    const raceList  = document.getElementById('race-list');
-    const metaDate  = document.getElementById('meta-date');
-    const metaFilter= document.getElementById('meta-filter');
-    const metaCount = document.getElementById('meta-count');
+    const loading    = document.getElementById('loading');
+    const errorEl    = document.getElementById('error-msg');
+    const raceList   = document.getElementById('race-list');
+    const metaDate   = document.getElementById('meta-date');
+    const metaFilter = document.getElementById('meta-filter');
+    const metaCount  = document.getElementById('meta-count');
+    const tabBarWrap = document.getElementById('tab-bar-wrap');
+    const tabBar     = document.getElementById('tab-bar');
 
     try {
       const res = await fetch('predictions/latest.json?_=' + Date.now());
@@ -305,7 +406,39 @@
         return;
       }
 
-      raceList.innerHTML = data.races.map(buildRaceCard).join('');
+      // タブ生成
+      raceCards = [];
+      tabBar.innerHTML = '';
+      raceList.innerHTML = '';
+
+      data.races.forEach((race, i) => {
+        // カード要素
+        const cardWrap = document.createElement('div');
+        cardWrap.innerHTML = buildRaceCard(race);
+        const cardEl = cardWrap.firstElementChild;
+        raceList.appendChild(cardEl);
+
+        // 推奨馬がいるか
+        const hasRec = race.horses.some(isRecommended);
+        raceCards.push({ el: cardEl, hasRec });
+
+        // タブボタン
+        const btn = document.createElement('button');
+        btn.className = 'tab-btn' + (i === 0 ? ' active' : '');
+        btn.textContent = race.race_num + 'R';
+        if (hasRec) {
+          const dot = document.createElement('span');
+          dot.className = 'tab-dot';
+          btn.appendChild(dot);
+        }
+        btn.addEventListener('click', () => switchTab(i));
+        tabBar.appendChild(btn);
+
+        // 最初以外は非表示
+        if (i !== 0) cardEl.style.display = 'none';
+      });
+
+      tabBarWrap.style.display = '';
 
     } catch (err) {
       loading.style.display = 'none';

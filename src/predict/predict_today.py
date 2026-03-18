@@ -94,6 +94,7 @@ def races_to_df(races: list[dict]) -> pd.DataFrame:
                 "weight_carried": h.get("weight_carried"),
                 "horse_weight_kg":h.get("horse_weight_kg"),
                 "odds":           h.get("odds"),
+                "popularity_raw": h.get("popularity"),   # スクレイピング済み人気
             })
     return pd.DataFrame(rows)
 
@@ -119,11 +120,18 @@ def merge_stats(df: pd.DataFrame) -> pd.DataFrame:
 # ─── popularity 計算 ─────────────────────────────────────────────────────────
 
 def add_popularity(df: pd.DataFrame) -> pd.DataFrame:
-    """レース内オッズ昇順ランク (1=1番人気)。odds が NaN の馬は NaN。"""
-    df["popularity"] = (
-        df.groupby("race_id")["odds"]
-        .rank(method="min", ascending=True)
-    )
+    """
+    人気を確定する。
+    スクレイピング済みの popularity_raw を優先し、未取得の場合は
+    レース内オッズ昇順ランクで代替する。
+    """
+    odds_rank = df.groupby("race_id")["odds"].rank(method="min", ascending=True)
+    if "popularity_raw" in df.columns:
+        df["popularity"] = df["popularity_raw"].where(
+            df["popularity_raw"].notna(), odds_rank
+        )
+    else:
+        df["popularity"] = odds_rank
     return df
 
 

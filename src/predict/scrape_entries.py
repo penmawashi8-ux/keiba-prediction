@@ -24,6 +24,7 @@ JST = timezone(timedelta(hours=9))
 
 RACE_LIST_URL = "https://race.netkeiba.com/top/race_list_sub.html"
 SHUTUBA_URL   = "https://race.netkeiba.com/race/shutuba.html"
+ODDS_URL      = "https://race.netkeiba.com/odds/index.html"
 
 HEADERS = {
     "User-Agent": (
@@ -113,11 +114,12 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
     venue = VENUES.get(venue_code, venue_code)
 
     # タイトル: "RaceName 芝1200m" 等
-    for tag in soup.find_all(["h1", "h2", "div"], class_=re.compile(r"RaceName|race_name|RaceNum", re.I)):
+    # RaceNum は "1R2R3R..." のようなナビゲーション要素に一致するため除外
+    for tag in soup.find_all(["h1", "h2", "div"], class_=re.compile(r"RaceName|race_name", re.I)):
         text = tag.get_text(strip=True)
         if text and not race_name:
-            # 数字のみのタグ（R番号）は除外
-            if not re.fullmatch(r"\d+R?", text):
+            # 数字のみ or "1R2R3R..." のようなナビ連結は除外
+            if not re.fullmatch(r"\d+R?", text) and not re.search(r"\d+R\d+R", text):
                 race_name = text
 
     # レースデータ行: "芝1200m（良）" / "発走 10:00 / ダ1800m"
@@ -212,13 +214,23 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
             if m:
                 horse_weight_kg = int(m.group(1))
 
-        # オッズ
-        # 旧: class="Odds" / 新: class="Txt_R Popular" など
-        odds_td = row.find("td", class_=re.compile(r"Txt_R|Odds|odds", re.I))
+        # オッズ: class="Txt_R Popular" セル
+        odds_td = row.find("td", class_=lambda c: c and "Txt_R" in c and "Popular" in c)
         odds = None
         if odds_td:
+            raw_odds = _text(odds_td).replace(",", "").replace("-", "")
+            if raw_odds and raw_odds != ".":
+                try:
+                    odds = float(raw_odds)
+                except ValueError:
+                    pass
+
+        # 人気: class="Popular Popular_Ninki Txt_C" セル
+        pop_td = row.find("td", class_=lambda c: c and "Popular_Ninki" in c)
+        popularity_scraped = None
+        if pop_td:
             try:
-                odds = float(_text(odds_td).replace(",", ""))
+                popularity_scraped = int(_text(pop_td))
             except ValueError:
                 pass
 
@@ -231,13 +243,14 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
             horse_num = horse_seq
 
         horses.append({
-            "horse_num":      horse_num,
-            "horse_name":     horse_name,
-            "horse_id":       horse_id,
-            "jockey":         jockey,
-            "weight_carried": weight_carried,
-            "horse_weight_kg": horse_weight_kg,
-            "odds":           odds,
+            "horse_num":        horse_num,
+            "horse_name":       horse_name,
+            "horse_id":         horse_id,
+            "jockey":           jockey,
+            "weight_carried":   weight_carried,
+            "horse_weight_kg":  horse_weight_kg,
+            "odds":             odds,
+            "popularity":       popularity_scraped,
         })
 
     if not horses:
@@ -261,6 +274,109 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
     }
 
 
+# ─── 単勝オッズページ取得・解析 ───────────────────────────────────────────────
+
+def _parse_odds_page(html: str) -> dict[int, tuple[Optional[float], Optional[int]]]:
+    """
+    netkeiba 単勝オッズページをパースして {horse_num: (odds, popularity)} を返す。
+    オッズが取得できなかった馬はキーに含まれない。
+    """
+    soup = BeautifulSoup(html, "lxml")
+    result: dict[int, tuple[Optional[float], Optional[int]]] = {}
+
+    # テーブル候補: id/class に OddsTable または RaceOdds を含む
+    table = (
+        soup.find("table", id=re.compile(r"OddsTable|RaceOdds", re.I))
+        or soup.find("table", class_=re.compile(r"OddsTable|RaceOdds", re.I))
+    )
+    if table is None:
+        # スクリプト内の JSON データを探す ("Num":"1","Odds":"2.5" 形式)
+        for script in soup.find_all("script"):
+            src = script.string or ""
+            for m in re.finditer(
+                r'"Num"\s*:\s*"?(\d+)"?.*?"Odds"\s*:\s*"?([\d.]+)"?.*?"Popular"\s*:\s*"?(\d+)"?',
+                src,
+            ):
+                try:
+                    horse_num = int(m.group(1))
+                    odds = float(m.group(2))
+                    pop = int(m.group(3))
+                    result[horse_num] = (odds, pop)
+                except ValueError:
+                    pass
+        return result
+
+    for row in table.find_all("tr"):
+        cells = row.find_all("td")
+        if len(cells) < 2:
+            continue
+
+        def _t(tag) -> str:
+            return tag.get_text(strip=True) if tag else ""
+
+        # 馬番
+        umaban_td = row.find("td", class_=re.compile(r"Umaban|umaban", re.I))
+        if umaban_td is None:
+            # フォールバック: 最初の数値セル
+            for td in cells:
+                if _t(td).isdigit():
+                    umaban_td = td
+                    break
+        if umaban_td is None:
+            continue
+        horse_num_str = _t(umaban_td)
+        if not horse_num_str.isdigit():
+            continue
+        horse_num = int(horse_num_str)
+
+        # オッズ
+        odds_td = row.find("td", class_=re.compile(r"^Odds$|Txt_R", re.I))
+        odds: Optional[float] = None
+        if odds_td:
+            raw = _t(odds_td).replace(",", "").replace("---.-", "").replace("-", "")
+            if raw and raw != ".":
+                try:
+                    odds = float(raw)
+                except ValueError:
+                    pass
+
+        # 人気
+        pop_td = row.find("td", class_=re.compile(r"Popular|Ninki", re.I))
+        pop: Optional[int] = None
+        if pop_td:
+            try:
+                pop = int(_t(pop_td))
+            except ValueError:
+                pass
+
+        if odds is not None:
+            result[horse_num] = (odds, pop)
+
+    return result
+
+
+async def _fetch_html(
+    session: aiohttp.ClientSession,
+    url: str,
+    timeout: int = 20,
+) -> Optional[str]:
+    """URL を取得して文字列で返す。失敗時は None。"""
+    try:
+        async with session.get(url, timeout=aiohttp.ClientTimeout(total=timeout)) as resp:
+            if resp.status != 200:
+                logger.warning(f"fetch failed {url}: HTTP {resp.status}")
+                return None
+            charset = resp.charset or "euc-jp"
+            raw = await resp.read()
+            try:
+                return raw.decode(charset, errors="replace")
+            except (LookupError, UnicodeDecodeError):
+                return raw.decode("utf-8", errors="replace")
+    except Exception as e:
+        logger.warning(f"fetch error {url}: {e}")
+        return None
+
+
 # ─── 出馬表フェッチ ───────────────────────────────────────────────────────────
 
 async def fetch_shutuba(
@@ -271,25 +387,36 @@ async def fetch_shutuba(
     url = f"{SHUTUBA_URL}?race_id={race_id}"
     async with semaphore:
         await asyncio.sleep(random.uniform(0.5, 1.0))
-        try:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
-                if resp.status != 200:
-                    logger.warning(f"shutuba fetch failed {race_id}: HTTP {resp.status}")
-                    return None
-                # Content-Type のcharset を優先し、不明な場合は EUC-JP を試みる
-                charset = resp.charset or "euc-jp"
-                raw = await resp.read()
-                try:
-                    html = raw.decode(charset, errors="replace")
-                except (LookupError, UnicodeDecodeError):
-                    html = raw.decode("utf-8", errors="replace")
-        except Exception as e:
-            logger.warning(f"shutuba fetch error {race_id}: {e}")
-            return None
+        html = await _fetch_html(session, url)
+
+    if html is None:
+        logger.warning(f"shutuba fetch failed {race_id}")
+        return None
 
     result = _parse_shutuba(race_id, html)
-    if result:
-        logger.info(f"OK {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
+    if result is None:
+        return None
+
+    # オッズが未取得の馬があれば前日オッズページを試みる
+    missing_odds = any(h["odds"] is None for h in result["horses"])
+    if missing_odds:
+        odds_url = f"{ODDS_URL}?race_id={race_id}&type=b1"
+        async with semaphore:
+            await asyncio.sleep(random.uniform(0.3, 0.6))
+            odds_html = await _fetch_html(session, odds_url)
+        if odds_html:
+            odds_map = _parse_odds_page(odds_html)
+            for horse in result["horses"]:
+                num = horse["horse_num"]
+                if num in odds_map:
+                    if horse["odds"] is None:
+                        horse["odds"] = odds_map[num][0]
+                    if horse["popularity"] is None:
+                        horse["popularity"] = odds_map[num][1]
+            got = sum(1 for h in result["horses"] if h["odds"] is not None)
+            logger.info(f"odds page: {race_id} → {got}/{len(result['horses'])}頭のオッズ取得")
+
+    logger.info(f"OK {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
     return result
 
 
