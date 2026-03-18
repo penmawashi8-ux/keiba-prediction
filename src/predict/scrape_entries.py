@@ -22,7 +22,12 @@ from bs4 import BeautifulSoup
 
 JST = timezone(timedelta(hours=9))
 
-RACE_LIST_URL = "https://race.netkeiba.com/top/race_list_sub.html"
+RACE_LIST_URLS = [
+    # フル版を優先 (より多くのリンクを含む場合がある)
+    "https://race.netkeiba.com/top/race_list.html",
+    # サブ版はフォールバック
+    "https://race.netkeiba.com/top/race_list_sub.html",
+]
 SHUTUBA_URL   = "https://race.netkeiba.com/race/shutuba.html"
 
 HEADERS = {
@@ -49,39 +54,99 @@ logger = logging.getLogger(__name__)
 
 # ─── レース一覧取得 ───────────────────────────────────────────────────────────
 
-async def fetch_race_ids(
+async def _fetch_race_ids_from_url(
     session: aiohttp.ClientSession,
-    date_str: str,          # "YYYYMMDD"
+    url: str,
 ) -> list[str]:
-    """当日の全 race_id を返す。"""
-    url = f"{RACE_LIST_URL}?kaisai_date={date_str}"
+    """指定URLからrace_idを収集して返す。"""
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
             if resp.status != 200:
-                logger.warning(f"race_list fetch failed: HTTP {resp.status}")
+                logger.warning(f"race_list fetch failed: HTTP {resp.status} ({url})")
                 return []
             html = await resp.text(encoding="utf-8", errors="replace")
     except Exception as e:
-        logger.warning(f"race_list fetch error: {e}")
+        logger.warning(f"race_list fetch error ({url}): {e}")
         return []
 
     soup = BeautifulSoup(html, "lxml")
     race_ids: list[str] = []
+    seen: set[str] = set()
+
+    # <a href="...?race_id=..."> パターン
     for a in soup.find_all("a", href=True):
         m = re.search(r"race_id=(\d{12,})", a["href"])
-        if m:
+        if m and m.group(1) not in seen:
+            seen.add(m.group(1))
             race_ids.append(m.group(1))
 
-    # 重複除去・順序保持
-    seen: set[str] = set()
-    unique: list[str] = []
-    for rid in race_ids:
-        if rid not in seen:
-            seen.add(rid)
-            unique.append(rid)
+    # data属性や onclick にも含まれる場合があるため追加検索
+    for tag in soup.find_all(True):
+        for attr_val in tag.attrs.values():
+            if isinstance(attr_val, str):
+                for m in re.finditer(r"race_id=(\d{12,})", attr_val):
+                    rid = m.group(1)
+                    if rid not in seen:
+                        seen.add(rid)
+                        race_ids.append(rid)
 
-    logger.info(f"race_list: {date_str} → {len(unique)} races")
-    return unique
+    return race_ids
+
+
+async def fetch_race_ids(
+    session: aiohttp.ClientSession,
+    date_str: str,          # "YYYYMMDD"
+) -> list[str]:
+    """
+    当日の全 race_id を返す。
+
+    race_list_sub.html はJavaScriptで動的描画されるため、静的HTMLには
+    グレードレース等の一部リンクしか含まれない。
+    そこで取得できた race_id のプレフィックス (YYYYVVKKDD, 10桁) ごとに
+    R01〜R12 を全生成し、全レースを取得できるよう補完する。
+    """
+    seed_ids: list[str] = []
+
+    for base_url in RACE_LIST_URLS:
+        url = f"{base_url}?kaisai_date={date_str}"
+        ids = await _fetch_race_ids_from_url(session, url)
+        if ids:
+            logger.info(f"race_list ({base_url.split('/')[-1]}): {len(ids)} seed IDs found")
+            seed_ids = ids
+            break
+
+    if not seed_ids:
+        logger.warning(f"race_list: {date_str} → seed IDs が見つかりませんでした")
+        return []
+
+    # ── プレフィックス(YYYYVVKKDD)ごとに R01〜R12 を全生成 ──────────────────
+    # race_id 構造: YYYYVVKKDDNN
+    #   VV=会場コード  KK=回(kai)  DD=日(nichi)  NN=レース番号
+    # 静的HTMLには注目レースしかリンクされないため、
+    # 見つかったIDのNN部分を01-12に置換して全レースを補完する。
+    prefixes: list[str] = []
+    seen_pfx: set[str] = set()
+    for rid in seed_ids:
+        if len(rid) >= 12:
+            pfx = rid[:10]
+            if pfx not in seen_pfx:
+                seen_pfx.add(pfx)
+                prefixes.append(pfx)
+
+    all_ids: list[str] = []
+    seen_all: set[str] = set()
+    for pfx in prefixes:
+        for race_num in range(1, 13):
+            rid = f"{pfx}{race_num:02d}"
+            if rid not in seen_all:
+                seen_all.add(rid)
+                all_ids.append(rid)
+
+    logger.info(
+        f"race_list: {date_str} → seed {len(seed_ids)}件 / "
+        f"プレフィックス {len(prefixes)}会場 / 展開後 {len(all_ids)}件"
+    )
+    return all_ids
 
 
 # ─── 出馬表パース ─────────────────────────────────────────────────────────────
