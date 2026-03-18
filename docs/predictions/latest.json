@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-03-18T08:48:45+09:00",
-  "updated_at": "2026-03-18T08:48:45+09:00",
+  "generated_at": "2026-03-18T13:04:26+09:00",
+  "updated_at": "2026-03-18T13:04:26+09:00",
   "target_date": "2026-03-15",
   "filter_conditions": {
     "min_pred_prob": 0.08,
@@ -11,7 +11,7 @@
   "races": [
     {
       "race_id": "202606020601",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "中山",
       "race_num": 1,
       "surface": "ダート",
@@ -182,7 +182,7 @@
     },
     {
       "race_id": "202606020602",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "中山",
       "race_num": 2,
       "surface": "ダート",
@@ -353,7 +353,7 @@
     },
     {
       "race_id": "202606020603",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "中山",
       "race_num": 3,
       "surface": "ダート",
@@ -524,7 +524,7 @@
     },
     {
       "race_id": "202606020604",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "中山",
       "race_num": 4,
       "surface": "ダート",
@@ -695,7 +695,7 @@
     },
     {
       "race_id": "202606020605",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "中山",
       "race_num": 5,
       "surface": "芝",
@@ -886,7 +886,7 @@
     },
     {
       "race_id": "202606020606",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "4歳以上1勝クラス",
       "venue": "中山",
       "race_num": 6,
       "surface": "ダート",
@@ -1057,7 +1057,7 @@
     },
     {
       "race_id": "202606020607",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳1勝クラス",
       "venue": "中山",
       "race_num": 7,
       "surface": "芝",
@@ -1218,7 +1218,7 @@
     },
     {
       "race_id": "202606020608",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "4歳以上2勝クラス",
       "venue": "中山",
       "race_num": 8,
       "surface": "芝",
@@ -1329,7 +1329,7 @@
     },
     {
       "race_id": "202606020609",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "阿見特別",
       "venue": "中山",
       "race_num": 9,
       "surface": "ダート",
@@ -1450,7 +1450,7 @@
     },
     {
       "race_id": "202606020610",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "東風S",
       "venue": "中山",
       "race_num": 10,
       "surface": "芝",
@@ -1621,7 +1621,7 @@
     },
     {
       "race_id": "202606020611",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "スプリングS",
       "venue": "中山",
       "race_num": 11,
       "surface": "芝",
@@ -1792,7 +1792,7 @@
     },
     {
       "race_id": "202606020612",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "4歳以上1勝クラス",
       "venue": "中山",
       "race_num": 12,
       "surface": "ダート",
@@ -1963,7 +1963,7 @@
     },
     {
       "race_id": "202607010201",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "中京",
       "race_num": 1,
       "surface": "ダート",
@@ -2134,7 +2134,7 @@
     },
     {
       "race_id": "202607010202",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "中京",
       "race_num": 2,
       "surface": "ダート",
@@ -2275,7 +2275,7 @@
     },
     {
       "race_id": "202607010203",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "中京",
       "race_num": 3,
       "surface": "芝",
@@ -2446,7 +2446,7 @@
     },
     {
       "race_id": "202607010204",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "中京",
       "race_num": 4,
       "surface": "芝",
@@ -2637,7 +2637,7 @@
     },
     {
       "race_id": "202607010205",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "中京",
       "race_num": 5,
       "surface": "芝",
@@ -2798,7 +2798,7 @@
     },
     {
       "race_id": "202607010206",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "4歳以上1勝クラス",
       "venue": "中京",
       "race_num": 6,
       "surface": "ダート",
@@ -2969,7 +2969,7 @@
     },
     {
       "race_id": "202607010207",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "4歳以上1勝クラス",
       "venue": "中京",
       "race_num": 7,
       "surface": "ダート",
@@ -3130,7 +3130,7 @@
     },
     {
       "race_id": "202607010208",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "4歳以上1勝クラス",
       "venue": "中京",
       "race_num": 8,
       "surface": "芝",
@@ -3261,7 +3261,7 @@
     },
     {
       "race_id": "202607010209",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "伊良湖特別",
       "venue": "中京",
       "race_num": 9,
       "surface": "ダート",
@@ -3432,7 +3432,7 @@
     },
     {
       "race_id": "202607010210",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "昇竜S",
       "venue": "中京",
       "race_num": 10,
       "surface": "ダート",
@@ -3563,7 +3563,7 @@
     },
     {
       "race_id": "202607010211",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "金鯱賞",
       "venue": "中京",
       "race_num": 11,
       "surface": "芝",
@@ -3714,7 +3714,7 @@
     },
     {
       "race_id": "202607010212",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "4歳以上1勝クラス",
       "venue": "中京",
       "race_num": 12,
       "surface": "芝",
@@ -3905,7 +3905,7 @@
     },
     {
       "race_id": "202609010801",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "阪神",
       "race_num": 1,
       "surface": "ダート",
@@ -4076,7 +4076,7 @@
     },
     {
       "race_id": "202609010802",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "阪神",
       "race_num": 2,
       "surface": "ダート",
@@ -4227,7 +4227,7 @@
     },
     {
       "race_id": "202609010803",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "阪神",
       "race_num": 3,
       "surface": "ダート",
@@ -4398,7 +4398,7 @@
     },
     {
       "race_id": "202609010804",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "4歳以上障害未勝利",
       "venue": "阪神",
       "race_num": 4,
       "surface": "障",
@@ -4549,7 +4549,7 @@
     },
     {
       "race_id": "202609010805",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳未勝利",
       "venue": "阪神",
       "race_num": 5,
       "surface": "芝",
@@ -4720,7 +4720,7 @@
     },
     {
       "race_id": "202609010806",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "3歳1勝クラス",
       "venue": "阪神",
       "race_num": 6,
       "surface": "芝",
@@ -4841,7 +4841,7 @@
     },
     {
       "race_id": "202609010807",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "4歳以上1勝クラス",
       "venue": "阪神",
       "race_num": 7,
       "surface": "芝",
@@ -4982,7 +4982,7 @@
     },
     {
       "race_id": "202609010808",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "4歳以上2勝クラス",
       "venue": "阪神",
       "race_num": 8,
       "surface": "ダート",
@@ -5103,7 +5103,7 @@
     },
     {
       "race_id": "202609010809",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "ゆきやなぎ賞",
       "venue": "阪神",
       "race_num": 9,
       "surface": "芝",
@@ -5184,7 +5184,7 @@
     },
     {
       "race_id": "202609010810",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "甲南S",
       "venue": "阪神",
       "race_num": 10,
       "surface": "ダート",
@@ -5335,7 +5335,7 @@
     },
     {
       "race_id": "202609010811",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "米子城S",
       "venue": "阪神",
       "race_num": 11,
       "surface": "芝",
@@ -5506,7 +5506,7 @@
     },
     {
       "race_id": "202609010812",
-      "race_name": "1R2R3R4R5R6R7R8R9R10R11R12R",
+      "race_name": "4歳以上2勝クラス",
       "venue": "阪神",
       "race_num": 12,
       "surface": "ダート",
