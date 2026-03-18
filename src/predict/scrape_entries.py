@@ -22,12 +22,7 @@ from bs4 import BeautifulSoup
 
 JST = timezone(timedelta(hours=9))
 
-RACE_LIST_URLS = [
-    # フル版を優先 (より多くのリンクを含む場合がある)
-    "https://race.netkeiba.com/top/race_list.html",
-    # サブ版はフォールバック
-    "https://race.netkeiba.com/top/race_list_sub.html",
-]
+RACE_LIST_URL = "https://race.netkeiba.com/top/race_list_sub.html"
 SHUTUBA_URL   = "https://race.netkeiba.com/race/shutuba.html"
 
 HEADERS = {
@@ -105,19 +100,14 @@ async def fetch_race_ids(
     そこで取得できた race_id のプレフィックス (YYYYVVKKDD, 10桁) ごとに
     R01〜R12 を全生成し、全レースを取得できるよう補完する。
     """
-    seed_ids: list[str] = []
-
-    for base_url in RACE_LIST_URLS:
-        url = f"{base_url}?kaisai_date={date_str}"
-        ids = await _fetch_race_ids_from_url(session, url)
-        if ids:
-            logger.info(f"race_list ({base_url.split('/')[-1]}): {len(ids)} seed IDs found")
-            seed_ids = ids
-            break
+    url = f"{RACE_LIST_URL}?kaisai_date={date_str}"
+    seed_ids = await _fetch_race_ids_from_url(session, url)
 
     if not seed_ids:
         logger.warning(f"race_list: {date_str} → seed IDs が見つかりませんでした")
         return []
+
+    logger.info(f"race_list: {date_str} → seed {len(seed_ids)}件")
 
     # ── プレフィックス(YYYYVVKKDD)ごとに R01〜R12 を全生成 ──────────────────
     # race_id 構造: YYYYVVKKDDNN
