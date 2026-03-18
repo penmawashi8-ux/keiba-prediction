@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-03-18T08:14:05+09:00",
-  "updated_at": "2026-03-18T08:14:05+09:00",
-  "target_date": "2026-03-15",
+  "generated_at": "2026-03-18T23:18:18+09:00",
+  "updated_at": "2026-03-18T23:18:18+09:00",
+  "target_date": "2026-03-18",
   "filter_conditions": {
-    "min_pred_prob": 0.08,
+    "ev_positive": "pred_prob > 1/odds",
     "max_odds": 20.0
   },
   "total_bets": 0,
