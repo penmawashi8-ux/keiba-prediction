@@ -26,6 +26,7 @@ RACE_LIST_URL = "https://race.netkeiba.com/top/race_list_sub.html"
 SHUTUBA_URL   = "https://race.netkeiba.com/race/shutuba.html"
 ODDS_URL      = "https://race.netkeiba.com/odds/index.html"
 ODDS_API_URL  = "https://race.netkeiba.com/api/api_get_jra_odds.html"
+DB_NETKEIBA_RACE_URL = "https://db.netkeiba.com/race"
 
 HEADERS = {
     "User-Agent": (
@@ -356,6 +357,67 @@ def _parse_odds_page(html: str) -> dict[int, tuple[Optional[float], Optional[int
     return result
 
 
+def _parse_db_netkeiba_race(html: str) -> dict[int, tuple[Optional[float], Optional[int]]]:
+    """
+    db.netkeiba.com/race/{race_id}/ の結果テーブルから
+    {horse_num: (単勝オッズ, 人気)} を返す。過去レース専用フォールバック。
+
+    テーブル列構成 (0-index):
+      0: 着順  1: 枠番  2: 馬番  3: 馬名  4: 性齢  5: 斤量
+      6: 騎手  7: タイム 8: 着差  9: 人気  10: オッズ  11: 後3F
+      12: コーナー 13: 馬体重 14: 調教師 ...
+    ※ 列数はレースによって変わることがあるため後ろ2列で人気/オッズを探す
+    """
+    soup = BeautifulSoup(html, "lxml")
+    result: dict[int, tuple[Optional[float], Optional[int]]] = {}
+
+    table = soup.find("table", class_=re.compile(r"race_table_01|RaceTable", re.I))
+    if table is None:
+        return result
+
+    # ヘッダ行から人気・オッズの列インデックスを特定
+    header_row = table.find("tr")
+    col_names = [th.get_text(strip=True) for th in header_row.find_all(["th", "td"])] if header_row else []
+
+    def _col_idx(patterns: list[str]) -> int:
+        for i, name in enumerate(col_names):
+            for p in patterns:
+                if p in name:
+                    return i
+        return -1
+
+    idx_umaban = _col_idx(["馬番", "馬 番"])
+    idx_popular = _col_idx(["人気"])
+    idx_odds    = _col_idx(["オッズ", "単勝"])
+    # ヘッダが見つからない場合のデフォルト位置
+    if idx_umaban < 0: idx_umaban = 2
+    if idx_popular < 0: idx_popular = 9
+    if idx_odds    < 0: idx_odds    = 10
+
+    for row in table.find_all("tr")[1:]:  # skip header
+        cells = row.find_all("td")
+        if len(cells) <= max(idx_umaban, idx_popular, idx_odds):
+            continue
+        try:
+            horse_num = int(cells[idx_umaban].get_text(strip=True))
+        except (ValueError, IndexError):
+            continue
+        try:
+            popular = int(cells[idx_popular].get_text(strip=True))
+        except (ValueError, IndexError):
+            popular = None
+        try:
+            odds_raw = cells[idx_odds].get_text(strip=True).replace(",", "")
+            odds_val = float(odds_raw) if odds_raw else None
+        except (ValueError, IndexError):
+            odds_val = None
+
+        if horse_num > 0 and odds_val:
+            result[horse_num] = (odds_val, popular)
+
+    return result
+
+
 async def _fetch_odds_json_api(
     session: aiohttp.ClientSession,
     semaphore: asyncio.Semaphore,
@@ -500,6 +562,16 @@ async def fetch_shutuba(
             else:
                 logger.warning(f"odds page fetch failed {race_id}")
 
+        # --- フォールバック3: db.netkeiba.com 結果ページ (過去レース用) ---------
+        if not odds_map:
+            db_url = f"{DB_NETKEIBA_RACE_URL}/{race_id}/"
+            async with semaphore:
+                await asyncio.sleep(random.uniform(0.3, 0.6))
+                db_html = await _fetch_html(session, db_url)
+            if db_html:
+                logger.info(f"db.netkeiba {race_id}: {len(db_html)} chars")
+                odds_map = _parse_db_netkeiba_race(db_html)
+
         if odds_map:
             for horse in result["horses"]:
                 num = horse["horse_num"]
@@ -511,7 +583,7 @@ async def fetch_shutuba(
             got = sum(1 for h in result["horses"] if h["odds"] is not None)
             logger.info(f"odds merged {race_id}: {got}/{len(result['horses'])}頭")
         else:
-            logger.warning(f"no odds available for {race_id} (shutuba=---.- and all fallbacks empty)")
+            logger.warning(f"no odds for {race_id} (shutuba=---.- / all fallbacks empty)")
 
     logger.info(f"OK {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
     return result
