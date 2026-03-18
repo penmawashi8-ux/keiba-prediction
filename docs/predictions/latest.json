@@ -1,127 +1,13 @@
 {
-  "generated_at": "2026-03-15T09:00:00+09:00",
-  "updated_at": "2026-03-15T09:00:00+09:00",
+  "generated_at": "2026-03-19T01:04:29+09:00",
+  "updated_at": "2026-03-19T01:04:29+09:00",
   "target_date": "2026-03-15",
   "filter_conditions": {
     "ev_positive": "pred_prob > 1/odds",
     "max_odds": 20.0
   },
-  "total_bets": 7,
-  "total_races": 4,
-  "races": [
-    {
-      "race_id": "202606050801",
-      "race_name": "フラワーカップ",
-      "venue": "中山",
-      "race_num": 8,
-      "surface": "芝",
-      "distance_m": 1800,
-      "condition": "良",
-      "horses": [
-        {
-          "horse_num": 3,
-          "horse_name": "アールクイーン",
-          "jockey": "横山武史",
-          "odds": 5.2,
-          "popularity": 2,
-          "pred_prob": 0.2105,
-          "weight_carried": 54.0,
-          "horse_weight_kg": 456
-        },
-        {
-          "horse_num": 7,
-          "horse_name": "ミスオルフェ",
-          "jockey": "川田将雅",
-          "odds": 8.7,
-          "popularity": 4,
-          "pred_prob": 0.1312,
-          "weight_carried": 54.0,
-          "horse_weight_kg": 442
-        }
-      ]
-    },
-    {
-      "race_id": "202606050901",
-      "race_name": "スプリングS",
-      "venue": "中山",
-      "race_num": 11,
-      "surface": "芝",
-      "distance_m": 1800,
-      "condition": "良",
-      "horses": [
-        {
-          "horse_num": 2,
-          "horse_name": "ブルーストーム",
-          "jockey": "戸崎圭太",
-          "odds": 12.3,
-          "popularity": 5,
-          "pred_prob": 0.0901,
-          "weight_carried": 56.0,
-          "horse_weight_kg": 478
-        }
-      ]
-    },
-    {
-      "race_id": "202609050801",
-      "race_name": "阪神8R",
-      "venue": "阪神",
-      "race_num": 8,
-      "surface": "ダート",
-      "distance_m": 1400,
-      "condition": "良",
-      "horses": [
-        {
-          "horse_num": 5,
-          "horse_name": "サンダーボルト",
-          "jockey": "松山弘平",
-          "odds": 7.6,
-          "popularity": 3,
-          "pred_prob": 0.1421,
-          "weight_carried": 57.0,
-          "horse_weight_kg": 502
-        },
-        {
-          "horse_num": 11,
-          "horse_name": "クロスロード",
-          "jockey": "岩田望来",
-          "odds": 15.4,
-          "popularity": 7,
-          "pred_prob": 0.0893,
-          "weight_carried": 56.0,
-          "horse_weight_kg": 488
-        }
-      ]
-    },
-    {
-      "race_id": "202609051101",
-      "race_name": "阪神大賞典",
-      "venue": "阪神",
-      "race_num": 11,
-      "surface": "芝",
-      "distance_m": 3000,
-      "condition": "稍重",
-      "horses": [
-        {
-          "horse_num": 4,
-          "horse_name": "ディープリバー",
-          "jockey": "武豊",
-          "odds": 9.1,
-          "popularity": 4,
-          "pred_prob": 0.1218,
-          "weight_carried": 58.0,
-          "horse_weight_kg": 466
-        },
-        {
-          "horse_num": 8,
-          "horse_name": "マウントエベレスト",
-          "jockey": "福永祐一",
-          "odds": 18.5,
-          "popularity": 8,
-          "pred_prob": 0.0631,
-          "weight_carried": 58.0,
-          "horse_weight_kg": 512
-        }
-      ]
-    }
-  ]
+  "total_bets": 0,
+  "total_races": 0,
+  "races": [],
+  "note": "出走馬データを取得できませんでした"
 }
