@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>競馬予測 — LightGBM</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:    #2563eb;
+      --blue-lt: #eff6ff;
+      --green:   #16a34a;
+      --border:  #e5e7eb;
+      --muted:   #6b7280;
+      --bg:      #f9fafb;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+      background: var(--bg);
+      color: #111;
+      min-height: 100vh;
+    }
+
+    /* ── ヘッダ ── */
+    header {
+      background: var(--blue);
+      color: #fff;
+      padding: 1rem 1.25rem;
+    }
+    header h1 { font-size: 1.25rem; font-weight: 700; }
+    header p  { font-size: 0.8rem; opacity: 0.85; margin-top: 0.2rem; }
+
+    /* ── メタ情報バー ── */
+    #meta-bar {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 0.6rem 1.25rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    #meta-bar .chip {
+      background: var(--blue-lt);
+      color: var(--blue);
+      border: 1px solid #bfdbfe;
+      border-radius: 999px;
+      padding: 0.15rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    #meta-bar .badge-count {
+      background: var(--green);
+      color: #fff;
+      border-radius: 999px;
+      padding: 0.15rem 0.7rem;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    /* ── メインコンテンツ ── */
+    main {
+      max-width: 900px;
+      margin: 1.25rem auto;
+      padding: 0 1rem;
+    }
+
+    /* ── レースカード ── */
+    .race-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 1.25rem;
+      overflow: hidden;
+    }
+    .race-header {
+      background: var(--blue);
+      color: #fff;
+      padding: 0.65rem 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+    .race-header .race-name { font-weight: 700; font-size: 1rem; }
+    .race-header .race-meta { font-size: 0.8rem; opacity: 0.85; }
+
+    /* ── 馬テーブル ── */
+    .horse-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    .horse-table thead th {
+      background: #f3f4f6;
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .horse-table tbody td {
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    .horse-table tbody tr:last-child td { border-bottom: none; }
+    .horse-table tbody tr:hover td { background: var(--blue-lt); }
+    .horse-table .num { text-align: right; }
+
+    /* 予測勝率バー */
+    .prob-cell { min-width: 110px; }
+    .prob-bar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .prob-bar-bg {
+      flex: 1;
+      background: #e5e7eb;
+      border-radius: 999px;
+      height: 7px;
+      overflow: hidden;
+    }
+    .prob-bar-fill {
+      height: 100%;
+      background: var(--green);
+      border-radius: 999px;
+    }
+    .prob-val {
+      font-weight: 700;
+      color: var(--green);
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+
+    /* 人気バッジ */
+    .pop-badge {
+      display: inline-block;
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      background: #e5e7eb;
+      color: #374151;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.5rem;
+    }
+    .pop-badge.pop-1 { background: #fde68a; color: #92400e; }
+    .pop-badge.pop-2 { background: #dbeafe; color: #1e40af; }
+    .pop-badge.pop-3 { background: #d1fae5; color: #065f46; }
+
+    /* ── ローディング / エラー ── */
+    #loading, #error-msg {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+    #error-msg { color: #b91c1c; }
+
+    /* ── フッタ ── */
+    footer {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding: 1.5rem 1rem 2rem;
+    }
+    footer a { color: var(--blue); text-decoration: none; }
+
+    /* ── スマホ: 馬体重列を非表示 ── */
+    @media (max-width: 560px) {
+      .col-weight { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>競馬予測</h1>
+  <p>LightGBM モデルによる単勝買い目 — 毎週土曜 8:00 JST 自動更新</p>
+</header>
+
+<div id="meta-bar">
+  <span id="meta-date">読み込み中...</span>
+  <span id="meta-filter"></span>
+  <span id="meta-count"></span>
+</div>
+
+<main>
+  <div id="loading">データを読み込んでいます...</div>
+  <div id="error-msg" style="display:none"></div>
+  <div id="race-list"></div>
+</main>
+
+<footer>
+  Powered by LightGBM &amp; GitHub Actions &mdash;
+  <a href="https://github.com/penmawashi8-ux/keiba-prediction" target="_blank">GitHub</a>
+</footer>
+
+<script>
+  function fmt(v, d) {
+    return v == null ? '―' : Number(v).toFixed(d ?? 1);
+  }
+
+  function popBadge(pop) {
+    if (pop == null) return '―';
+    const cls = pop <= 3 ? 'pop-' + pop : '';
+    return `<span class="pop-badge ${cls}">${pop}</span>`;
+  }
+
+  function probBar(prob) {
+    // バー幅: 25% 勝率でほぼ全幅になるよう ×4
+    const fill = Math.min(prob * 100 * 4, 100).toFixed(1);
+    const disp = (prob * 100).toFixed(1) + '%';
+    return `<div class="prob-bar-wrap">
+      <div class="prob-bar-bg">
+        <div class="prob-bar-fill" style="width:${fill}%"></div>
+      </div>
+      <span class="prob-val">${disp}</span>
+    </div>`;
+  }
+
+  function buildRaceCard(race) {
+    const metaParts = [
+      race.venue,
+      (race.surface || '') + (race.distance_m ? race.distance_m + 'm' : ''),
+      race.condition,
+    ].filter(Boolean);
+
+    const rows = race.horses.map(h => `<tr>
+      <td>${h.horse_num}番</td>
+      <td><strong>${h.horse_name}</strong></td>
+      <td>${h.jockey || '―'}</td>
+      <td class="num">${fmt(h.odds)} 倍</td>
+      <td class="num">${popBadge(h.popularity)}</td>
+      <td class="prob-cell">${probBar(h.pred_prob)}</td>
+      <td class="num col-weight" style="color:var(--muted);font-size:.8rem">
+        ${h.horse_weight_kg ? h.horse_weight_kg + 'kg' : '―'}
+      </td>
+    </tr>`).join('');
+
+    return `<div class="race-card">
+      <div class="race-header">
+        <span class="race-name">${race.race_name}</span>
+        <span class="race-meta">${metaParts.join(' / ')}</span>
+      </div>
+      <table class="horse-table">
+        <thead><tr>
+          <th>馬番</th><th>馬名</th><th>騎手</th>
+          <th class="num">オッズ</th>
+          <th class="num">人気</th>
+          <th>予測勝率</th>
+          <th class="num col-weight">馬体重</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }
+
+  async function loadPredictions() {
+    const loading   = document.getElementById('loading');
+    const errorEl   = document.getElementById('error-msg');
+    const raceList  = document.getElementById('race-list');
+    const metaDate  = document.getElementById('meta-date');
+    const metaFilter= document.getElementById('meta-filter');
+    const metaCount = document.getElementById('meta-count');
+
+    try {
+      const res = await fetch('predictions/latest.json?_=' + Date.now());
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+
+      // メタ情報
+      const genAt = (data.generated_at || '').replace('T', ' ').slice(0, 16);
+      metaDate.textContent = `対象日: ${data.target_date || ''}  (更新: ${genAt} JST)`;
+
+      const fc = data.filter_conditions || {};
+      if (fc.min_pred_prob != null) {
+        metaFilter.innerHTML =
+          `<span class="chip">予測勝率 ≥ ${(fc.min_pred_prob * 100).toFixed(0)}%</span>` +
+          `<span class="chip">オッズ ≤ ${fc.max_odds} 倍</span>`;
+      }
+
+      metaCount.innerHTML =
+        `<span class="badge-count">${data.total_bets ?? 0} 買い目</span>` +
+        ` / ${data.total_races ?? 0} レース`;
+
+      loading.style.display = 'none';
+
+      if (data.note) {
+        raceList.innerHTML = `<p style="color:var(--muted);padding:1rem">${data.note}</p>`;
+        return;
+      }
+      if (!data.races || !data.races.length) {
+        raceList.innerHTML = `<p style="color:var(--muted);padding:1rem">条件に合う買い目がありませんでした。</p>`;
+        return;
+      }
+
+      raceList.innerHTML = data.races.map(buildRaceCard).join('');
+
+    } catch (err) {
+      loading.style.display = 'none';
+      errorEl.style.display = 'block';
+      errorEl.textContent = 'データを読み込めませんでした。GitHub Actions が初回実行されると表示されます。';
+      console.error(err);
+    }
+  }
+
+  loadPredictions();
+</script>
+</body>
+</html>

@@ -58,7 +58,7 @@ jobs:
         run: |
           python - <<'EOF'
           import json, pathlib
-          p = pathlib.Path("web/predictions/latest.json")
+          p = pathlib.Path("docs/predictions/latest.json")
           if not p.exists():
               print("latest.json not found")
               exit(0)
@@ -77,13 +77,13 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add web/predictions/latest.json
+          git add docs/predictions/latest.json
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
             TARGET=$(python -c "
           import json, pathlib
-          d = json.loads(pathlib.Path('web/predictions/latest.json').read_text())
+          d = json.loads(pathlib.Path('docs/predictions/latest.json').read_text())
           print(d.get('target_date', 'unknown'))
             ")
             git commit -m "chore: update predictions ${TARGET}"
