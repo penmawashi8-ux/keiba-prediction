@@ -40,7 +40,7 @@ FEATURE_COLS = [
     "horse_win_rate_surface",
     "jockey_win_rate_100",
     "jockey_win_rate_venue",   # 仕様の jockey_win_rate_course に相当
-    "popularity",              # レース内オッズ昇順ランク (1=1番人気)
+    # popularity / odds は除外: 市場が過小評価している馬を探すモデルのため
 ]
 
 LGBM_PARAMS = {
@@ -146,7 +146,7 @@ def ev_simulation(model: lgb.Booster, df: pd.DataFrame, label: str):
     d["pred_prob"]    = model.predict(d[FEATURE_COLS])
     d["implied_prob"] = 1.0 / d["odds"]
 
-    bets = d[d["pred_prob"] > d["implied_prob"]]
+    bets = d[(d["pred_prob"] > d["implied_prob"]) & (d["odds"] <= 20)]
     if len(bets) == 0:
         print(f"\n期待値シミュレーション [{label}]: 対象買い目なし")
         return
@@ -372,7 +372,7 @@ def save_model(model: lgb.Booster):
 
 def main():
     print("=" * 60)
-    print("LightGBM 学習開始  (特徴量: popularity 追加)")
+    print("LightGBM 学習開始  (popularity/odds 除外・市場過小評価モデル)")
     print("=" * 60)
 
     train, valid, test, df_full = load_and_split()

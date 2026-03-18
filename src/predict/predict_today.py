@@ -57,7 +57,7 @@ FEATURE_COLS = [
     "horse_win_rate_surface",
     "jockey_win_rate_100",
     "jockey_win_rate_venue",
-    "popularity",
+    # popularity / odds は除外: 市場が過小評価している馬を探すモデルのため
 ]
 
 logging.basicConfig(
@@ -146,7 +146,8 @@ def build_json(df: pd.DataFrame, target_date: str) -> dict:
     フィルタ済み DataFrame を latest.json 形式の dict に変換。
     pred_prob >= MIN_PRED_PROB かつ odds <= MAX_ODDS の行のみ。
     """
-    mask = (df["pred_prob"] >= MIN_PRED_PROB) & (df["odds"] <= MAX_ODDS)
+    # EV+ フィルタ: モデル予測勝率 > オッズ暗示勝率 (期待値 > 1) かつ odds ≤ MAX_ODDS
+    mask = (df["pred_prob"] > 1.0 / df["odds"].replace(0, float("inf"))) & (df["odds"] <= MAX_ODDS)
     bets = df[mask].copy()
 
     generated_at = datetime.now(JST).strftime("%Y-%m-%dT%H:%M:%S+09:00")
@@ -182,8 +183,8 @@ def build_json(df: pd.DataFrame, target_date: str) -> dict:
         "updated_at":    generated_at,   # index.html 後方互換
         "target_date":   target_date,
         "filter_conditions": {
-            "min_pred_prob": MIN_PRED_PROB,
-            "max_odds":      MAX_ODDS,
+            "ev_positive":  "pred_prob > 1/odds",
+            "max_odds":     MAX_ODDS,
         },
         "total_bets":    len(bets),
         "total_races":   len(races_out),
@@ -217,7 +218,7 @@ def main(date_str: str | None = None):
             "generated_at":  datetime.now(JST).strftime("%Y-%m-%dT%H:%M:%S+09:00"),
             "updated_at":    datetime.now(JST).strftime("%Y-%m-%dT%H:%M:%S+09:00"),
             "target_date":   target_date,
-            "filter_conditions": {"min_pred_prob": MIN_PRED_PROB, "max_odds": MAX_ODDS},
+            "filter_conditions": {"ev_positive": "pred_prob > 1/odds", "max_odds": MAX_ODDS},
             "total_bets":    0,
             "total_races":   0,
             "races":         [],
@@ -243,7 +244,7 @@ def main(date_str: str | None = None):
     result = build_json(df, target_date)
     logger.info(
         f"フィルタ後: {result['total_bets']}買い目 / {result['total_races']}レース "
-        f"(pred>={MIN_PRED_PROB}, odds<={MAX_ODDS})"
+        f"(pred>1/odds[EV+], odds<={MAX_ODDS})"
     )
     _save(result)
 
