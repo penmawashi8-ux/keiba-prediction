@@ -25,6 +25,7 @@ JST = timezone(timedelta(hours=9))
 RACE_LIST_URL = "https://race.netkeiba.com/top/race_list_sub.html"
 SHUTUBA_URL   = "https://race.netkeiba.com/race/shutuba.html"
 ODDS_URL      = "https://race.netkeiba.com/odds/index.html"
+ODDS_API_URL  = "https://race.netkeiba.com/api/api_get_jra_odds.html"
 
 HEADERS = {
     "User-Agent": (
@@ -355,6 +356,88 @@ def _parse_odds_page(html: str) -> dict[int, tuple[Optional[float], Optional[int
     return result
 
 
+async def _fetch_odds_json_api(
+    session: aiohttp.ClientSession,
+    semaphore: asyncio.Semaphore,
+    race_id: str,
+) -> dict[int, tuple[Optional[float], Optional[int]]]:
+    """
+    netkeiba JSON API から単勝オッズを取得する。
+    {horse_num: (odds, popularity)} を返す。
+    レスポンス例:
+      {"status":"normal","data":{"Odds":{"b1":[["馬番","人気","オッズ",...], ...]}}}
+    または
+      [{"HorseNum":"1","Popular":3,"Odds":"5.2"}, ...]
+    """
+    result: dict[int, tuple[Optional[float], Optional[int]]] = {}
+    url = f"{ODDS_API_URL}?race_id={race_id}&type=b1&action=init"
+    async with semaphore:
+        await asyncio.sleep(random.uniform(0.2, 0.5))
+        try:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=15)) as resp:
+                if resp.status != 200:
+                    logger.info(f"odds API {race_id}: HTTP {resp.status}")
+                    return result
+                raw = await resp.read()
+                try:
+                    text = raw.decode("utf-8", errors="replace")
+                except Exception:
+                    text = ""
+        except Exception as e:
+            logger.info(f"odds API fetch error {race_id}: {e}")
+            return result
+
+    logger.info(f"odds API {race_id}: {len(text)} chars, preview: {text[:300]!r}")
+
+    try:
+        import json as _json
+        data = _json.loads(text)
+    except Exception:
+        # JSON ではない → スクリプトから正規表現で抽出
+        for m in re.finditer(
+            r'"HorseNum"\s*:\s*"?(\d+)"?.*?"Popular"\s*:\s*"?(\d+)"?.*?"Odds"\s*:\s*"([\d.]+)"',
+            text,
+        ):
+            try:
+                result[int(m.group(1))] = (float(m.group(3)), int(m.group(2)))
+            except ValueError:
+                pass
+        return result
+
+    # 形式1: {"data":{"Odds":{"b1":[[馬番,人気,オッズ,...], ...]}}}
+    try:
+        rows = data["data"]["Odds"]["b1"]
+        for row in rows:
+            if len(row) >= 3:
+                horse_num = int(row[0])
+                popular   = int(row[1])
+                odds_val  = float(str(row[2]).replace(",", ""))
+                if odds_val > 0:
+                    result[horse_num] = (odds_val, popular)
+        if result:
+            return result
+    except (KeyError, TypeError, ValueError, IndexError):
+        pass
+
+    # 形式2: [{"HorseNum":"1","Popular":3,"Odds":"5.2"}, ...]
+    # or {"list": [...]}
+    try:
+        items = data if isinstance(data, list) else data.get("list", [])
+        for item in items:
+            horse_num = int(item.get("HorseNum", item.get("Num", 0)))
+            popular   = int(item.get("Popular", item.get("Ninki", 0)) or 0)
+            odds_raw  = str(item.get("Odds", item.get("Win", "0"))).replace(",", "")
+            odds_val  = float(odds_raw) if odds_raw and odds_raw not in ("", "-", "---.-") else 0.0
+            if horse_num > 0 and odds_val > 0:
+                result[horse_num] = (odds_val, popular or None)
+        if result:
+            return result
+    except (TypeError, ValueError, KeyError):
+        pass
+
+    return result
+
+
 async def _fetch_html(
     session: aiohttp.ClientSession,
     url: str,
@@ -397,15 +480,27 @@ async def fetch_shutuba(
     if result is None:
         return None
 
-    # オッズが未取得の馬があれば前日オッズページを試みる
+    # シャッタバページで取れなかったオッズを補完
     missing_odds = any(h["odds"] is None for h in result["horses"])
     if missing_odds:
-        odds_url = f"{ODDS_URL}?race_id={race_id}&type=b1"
-        async with semaphore:
-            await asyncio.sleep(random.uniform(0.3, 0.6))
-            odds_html = await _fetch_html(session, odds_url)
-        if odds_html:
-            odds_map = _parse_odds_page(odds_html)
+        logger.info(f"shutuba odds missing for {race_id}, trying fallbacks...")
+
+        # --- フォールバック1: JSON API -----------------------------------------
+        odds_map = await _fetch_odds_json_api(session, semaphore, race_id)
+
+        # --- フォールバック2: odds HTML page (JS非対応のため期待薄だが試みる) ---
+        if not odds_map:
+            odds_url = f"{ODDS_URL}?race_id={race_id}&type=b1"
+            async with semaphore:
+                await asyncio.sleep(random.uniform(0.3, 0.6))
+                odds_html = await _fetch_html(session, odds_url)
+            if odds_html:
+                logger.info(f"odds page fetched {race_id}: {len(odds_html)} chars, preview: {odds_html[:200]!r}")
+                odds_map = _parse_odds_page(odds_html)
+            else:
+                logger.warning(f"odds page fetch failed {race_id}")
+
+        if odds_map:
             for horse in result["horses"]:
                 num = horse["horse_num"]
                 if num in odds_map:
@@ -414,7 +509,9 @@ async def fetch_shutuba(
                     if horse["popularity"] is None:
                         horse["popularity"] = odds_map[num][1]
             got = sum(1 for h in result["horses"] if h["odds"] is not None)
-            logger.info(f"odds page: {race_id} → {got}/{len(result['horses'])}頭のオッズ取得")
+            logger.info(f"odds merged {race_id}: {got}/{len(result['horses'])}頭")
+        else:
+            logger.warning(f"no odds available for {race_id} (shutuba=---.- and all fallbacks empty)")
 
     logger.info(f"OK {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
     return result
