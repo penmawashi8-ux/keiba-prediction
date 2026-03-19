@@ -1,11 +1,48 @@
-11:23:09 [INFO] === 予測開始: 2026-03-19 ===
-11:23:09 [INFO] モデル読み込み: lgbm_model.txt (rounds=112)
-11:23:09 [INFO] 出馬表スクレイピング中...
-11:23:10 [WARNING] race_list fetch failed: HTTP 404 (https://race.netkeiba.com/top/race_result_sub.html?kaisai_date=20260319)
-11:23:10 [WARNING] race_list fetch failed: HTTP 404 (https://race.netkeiba.com/top/race_result.html?kaisai_date=20260319)
-11:23:10 [WARNING] race_list: 20260319 → seed IDs が見つかりませんでした
-11:23:10 [WARNING] No races found for 20260319
-11:23:10 [WARNING] 出走馬が取得できませんでした。空の JSON を出力します。
-11:23:10 [INFO] 保存: /home/runner/work/keiba-prediction/keiba-prediction/web/predictions/latest.json
+11:26:37 [INFO] === 予測開始: 2026-03-15 ===
+11:26:37 [INFO] モデル読み込み: lgbm_model.txt (rounds=112)
+11:26:37 [INFO] 出馬表スクレイピング中...
+11:26:38 [INFO] race_list: 20260315 → seed 36件 (https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=20260315)
+11:26:38 [INFO] race_list: 20260315 → seed 36件 / プレフィックス 3会場 / 展開後 36件
+11:26:39 [INFO] OK(PC) 202606020601: 3歳未勝利 (16頭)
+11:26:39 [INFO] OK(PC) 202606020605: 3歳未勝利 (18頭)
+11:26:39 [INFO] OK(PC) 202606020604: 3歳未勝利 (16頭)
+11:26:39 [INFO] OK(PC) 202606020603: 3歳未勝利 (16頭)
+11:26:39 [INFO] OK(PC) 202606020602: 3歳未勝利 (16頭)
+11:26:41 [INFO] OK(PC) 202606020607: 3歳1勝クラス (15頭)
+11:26:41 [INFO] OK(PC) 202606020606: 4歳以上1勝クラス (16頭)
+11:26:42 [INFO] OK(PC) 202606020608: 4歳以上2勝クラス (10頭)
+11:26:42 [INFO] OK(PC) 202606020609: 阿見特別 (11頭)
+11:26:42 [INFO] OK(PC) 202606020610: 東風S (16頭)
+11:26:44 [INFO] OK(PC) 202606020612: 4歳以上1勝クラス (16頭)
+11:26:44 [INFO] OK(PC) 202606020611: スプリングS (16頭)
+11:26:44 [INFO] OK(PC) 202609010801: 3歳未勝利 (16頭)
+11:26:44 [INFO] OK(PC) 202609010802: 3歳未勝利 (14頭)
+11:26:45 [INFO] OK(PC) 202609010803: 3歳未勝利 (16頭)
+11:26:46 [INFO] OK(PC) 202609010804: 4歳以上障害未勝利 (14頭)
+11:26:47 [INFO] OK(PC) 202609010805: 3歳未勝利 (16頭)
+11:26:47 [INFO] OK(PC) 202609010806: 3歳1勝クラス (11頭)
+11:26:47 [INFO] OK(PC) 202609010807: 4歳以上1勝クラス (13頭)
+11:26:47 [INFO] OK(PC) 202609010808: 4歳以上2勝クラス (11頭)
+11:26:49 [INFO] OK(PC) 202609010810: 甲南S (14頭)
+11:26:49 [INFO] OK(PC) 202609010809: ゆきやなぎ賞 (7頭)
+11:26:49 [INFO] OK(PC) 202609010811: 米子城S (16頭)
+11:26:50 [INFO] OK(PC) 202607010201: 3歳未勝利 (16頭)
+11:26:50 [INFO] OK(PC) 202609010812: 4歳以上2勝クラス (13頭)
+11:26:51 [INFO] OK(PC) 202607010202: 3歳未勝利 (13頭)
+11:26:51 [INFO] OK(PC) 202607010203: 3歳未勝利 (16頭)
+11:26:52 [INFO] OK(PC) 202607010204: 3歳未勝利 (18頭)
+11:26:52 [INFO] OK(PC) 202607010205: 3歳未勝利 (15頭)
+11:26:53 [INFO] OK(PC) 202607010206: 4歳以上1勝クラス (16頭)
+11:26:54 [INFO] OK(PC) 202607010207: 4歳以上1勝クラス (15頭)
+11:26:54 [INFO] OK(PC) 202607010208: 4歳以上1勝クラス (12頭)
+11:26:55 [INFO] OK(PC) 202607010209: 伊良湖特別 (15頭)
+11:26:55 [INFO] OK(PC) 202607010210: 昇竜S (12頭)
+11:26:55 [INFO] OK(PC) 202607010211: 金鯱賞 (14頭)
+11:26:56 [INFO] OK(PC) 202607010212: 4歳以上1勝クラス (18頭)
+11:26:57 [INFO] 取得: 36レース 523頭
+11:26:57 [INFO] stats merge: 馬 182/523 件マッチ, 騎手 37/523 件マッチ
+11:26:57 [INFO] 予測完了: pred_prob 中央値=0.0485
+11:26:57 [INFO] フィルタ後: 97買い目 / 25レース (odds unavailable - prob filter only)
+11:26:57 [INFO] 保存: /home/runner/work/keiba-prediction/keiba-prediction/web/predictions/latest.json
 [LightGBM] [Warning] Ignoring unrecognized parameter 'bagging_by_query' found in model string.
 [LightGBM] [Warning] Ignoring unrecognized parameter 'early_stopping_min_delta' found in model string.
