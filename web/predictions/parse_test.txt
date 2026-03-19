@@ -4,8 +4,11 @@
   202606020803
   202606020804
   202606020805
-WARNING:src.predict.scrape_entries:no horses parsed: 202606020801
-WARNING:src.predict.scrape_entries:no horses parsed: 202606020801
-WARNING:src.predict.scrape_entries:shutuba SP parse failed 202606020801
-=== fetch_shutuba(202606020801) ===
-  result: None
+shutuba HTTP: 200
+table found: True
+rows: 18
+  cells: 0
+  cells: 0
+  cells: 15 umaban=''
+  cells: 15 umaban=''
+  cells: 15 umaban=''
