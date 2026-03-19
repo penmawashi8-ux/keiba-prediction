@@ -1,0 +1,10 @@
+=== Testing race list URLs for 20260322 ===
+HTTP 200 | race_id_matches: 36 | https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=20260322
+race_id=202606020801
+race_id=202606020802
+race_id=202606020803
+race_id=202606020804
+race_id=202606020805
+HTTP 404 | race_id_matches: 0 | https://race.netkeiba.com/top/race_result_sub.html?kaisai_date=20260322
+HTTP 200 | race_id_matches: 0 | https://db.netkeiba.com/?pid=race_list&date=20260322
+HTTP 200 | race_id_matches: 0 | https://race.netkeiba.com/top/race_list.html?kaisai_date=20260322
