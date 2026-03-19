@@ -236,7 +236,8 @@ def main(date_str: str | None = None):
     df = add_popularity(df)
 
     # ── 4. 予測 ──
-    X = df[FEATURE_COLS]
+    # None → NaN に変換（object dtype の列を float に統一）
+    X = df[FEATURE_COLS].apply(pd.to_numeric, errors="coerce")
     df["pred_prob"] = model.predict(X)
     logger.info(f"予測完了: pred_prob 中央値={df['pred_prob'].median():.4f}")
 
