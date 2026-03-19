@@ -21,7 +21,7 @@ Umaban
 <head>
 <meta charset="EUC-JP">
 
-<!-- block=common__meta_tag_each_race (cg) -->
+<!-- block=common__meta_tag_each_race (cp) -->
 <meta http-equiv="content-language" content="ja">
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 <meta name="viewport" content="width=1000">

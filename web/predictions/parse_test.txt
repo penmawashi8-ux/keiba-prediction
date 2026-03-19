@@ -1,6 +1,11 @@
-DEBUG:asyncio:Using selector: EpollSelector
-WARNING:src.predict.scrape_entries:race_list fetch failed: HTTP 404 (https://race.netkeiba.com/top/race_result_sub.html?kaisai_date=$DATE)
-WARNING:src.predict.scrape_entries:race_list fetch failed: HTTP 404 (https://race.netkeiba.com/top/race_result.html?kaisai_date=$DATE)
-WARNING:src.predict.scrape_entries:race_list: $DATE → seed IDs が見つかりませんでした
-
-=== race_ids (0) ===
+=== race_ids (36) ===
+  202606020801
+  202606020802
+  202606020803
+  202606020804
+  202606020805
+WARNING:src.predict.scrape_entries:no horses parsed: 202606020801
+WARNING:src.predict.scrape_entries:no horses parsed: 202606020801
+WARNING:src.predict.scrape_entries:shutuba SP parse failed 202606020801
+=== fetch_shutuba(202606020801) ===
+  result: None
