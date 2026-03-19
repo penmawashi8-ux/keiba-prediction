@@ -117,17 +117,17 @@ jobs:
                   if table:
                       rows = table.find_all('tr')
                       print(f'rows: {len(rows)}')
-                      for row in rows[:5]:
+                      # Show all cells for first data row
+                  for row in rows:
                           cells = row.find_all('td')
-                          print(f'  cells: {len(cells)}')
-                          if len(cells) == 0:
+                          if len(cells) < 10:
                               continue
-                          # Show first few td classes and content
-                          for td in cells[:6]:
+                          for i, td in enumerate(cells):
                               cls = td.get('class', [])
-                              txt = td.get_text(strip=True)[:20]
-                              inner = str(td)[:80].replace('\n','')
-                              print(f'    td class={cls} text={repr(txt)} inner={repr(inner)}')
+                              txt = td.get_text(strip=True)[:30]
+                              inner = str(td)[:100].replace('\n',' ')
+                              print(f'  [{i}] class={cls} text={repr(txt)}')
+                          break  # only first data row
           asyncio.run(main())
           PYEOF
           python3 /tmp/test_scraper.py "$DATE" > web/predictions/parse_test.txt 2>&1
