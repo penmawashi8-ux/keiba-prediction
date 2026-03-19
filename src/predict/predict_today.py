@@ -94,6 +94,7 @@ def races_to_df(races: list[dict]) -> pd.DataFrame:
                 "weight_carried": h.get("weight_carried"),
                 "horse_weight_kg":h.get("horse_weight_kg"),
                 "odds":           h.get("odds"),
+                "popularity":     h.get("popularity"),
             })
     return pd.DataFrame(rows)
 
