@@ -130,7 +130,7 @@ def add_popularity(df: pd.DataFrame) -> pd.DataFrame:
 # ─── フィルタ & JSON 生成 ─────────────────────────────────────────────────────
 
 def _nan_to_none(v):
-    """JSON シリアライズ用: float NaN → None。"""
+    """JSON シリアライズ用: float NaN → None、numpy型 → Python型に変換。"""
     if v is None:
         return None
     try:
@@ -138,6 +138,11 @@ def _nan_to_none(v):
             return None
     except (TypeError, ValueError):
         pass
+    # numpy 型を Python ネイティブ型に変換
+    if isinstance(v, np.integer):
+        return int(v)
+    if isinstance(v, np.floating):
+        return float(v)
     return v
 
 
