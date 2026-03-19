@@ -254,9 +254,11 @@ def main(date_str: str | None = None):
 
     # ── 5. フィルタ & JSON 保存 ──
     result = build_json(df, target_date)
+    fc = result.get("filter_conditions", {})
+    filter_desc = fc.get("ev_positive", fc.get("note", ""))
     logger.info(
         f"フィルタ後: {result['total_bets']}買い目 / {result['total_races']}レース "
-        f"(pred>1/odds[EV+], odds<={MAX_ODDS})"
+        f"({filter_desc})"
     )
     _save(result)
 
