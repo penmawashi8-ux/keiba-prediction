@@ -7,26 +7,18 @@
 shutuba HTTP: 200
 table found: True
 rows: 18
-  cells: 0
-  cells: 0
-  cells: 15
-    td class=['Waku', 'Txt_C'] text='' inner='<td class="Waku Txt_C"><span></span></td>'
-    td class=['Umaban', 'Txt_C'] text='' inner='<td class="Umaban Txt_C"></td>'
-    td class=['CheckMark', 'Horse_Select'] text='--◎◯▲△☆&#10003消' inner='<td class="CheckMark Horse_Select"><select class="makeMeFancy_13" id="mark_13" '
-    td class=['HorseInfo'] text='アクシズ' inner='<td class="HorseInfo"><div><div><span class="HorseName"><a href="https://db.n'
-    td class=['Barei', 'Txt_C'] text='牡3' inner='<td class="Barei Txt_C">牡3</td>'
-    td class=['Txt_C'] text='57.0' inner='<td class="Txt_C">57.0</td>'
-  cells: 15
-    td class=['Waku', 'Txt_C'] text='' inner='<td class="Waku Txt_C"><span></span></td>'
-    td class=['Umaban', 'Txt_C'] text='' inner='<td class="Umaban Txt_C"></td>'
-    td class=['CheckMark', 'Horse_Select'] text='--◎◯▲△☆&#10003消' inner='<td class="CheckMark Horse_Select"><select class="makeMeFancy_1" id="mark_1" na'
-    td class=['HorseInfo'] text='ウシャス' inner='<td class="HorseInfo"><div><div><span class="HorseName"><a href="https://db.n'
-    td class=['Barei', 'Txt_C'] text='牝3' inner='<td class="Barei Txt_C">牝3</td>'
-    td class=['Txt_C'] text='53.0' inner='<td class="Txt_C">53.0</td>'
-  cells: 15
-    td class=['Waku', 'Txt_C'] text='' inner='<td class="Waku Txt_C"><span></span></td>'
-    td class=['Umaban', 'Txt_C'] text='' inner='<td class="Umaban Txt_C"></td>'
-    td class=['CheckMark', 'Horse_Select'] text='--◎◯▲△☆&#10003消' inner='<td class="CheckMark Horse_Select"><select class="makeMeFancy_14" id="mark_14" '
-    td class=['HorseInfo'] text='カンノンミッキー' inner='<td class="HorseInfo"><div><div><span class="HorseName"><a href="https://db.n'
-    td class=['Barei', 'Txt_C'] text='牡3' inner='<td class="Barei Txt_C">牡3</td>'
-    td class=['Txt_C'] text='57.0' inner='<td class="Txt_C">57.0</td>'
+  [0] class=['Waku', 'Txt_C'] text=''
+  [1] class=['Umaban', 'Txt_C'] text=''
+  [2] class=['CheckMark', 'Horse_Select'] text='--◎◯▲△☆&#10003消'
+  [3] class=['HorseInfo'] text='アクシズ'
+  [4] class=['Barei', 'Txt_C'] text='牡3'
+  [5] class=['Txt_C'] text='57.0'
+  [6] class=['Jockey'] text='横山琉'
+  [7] class=['Trainer'] text='美浦尾形'
+  [8] class=['Weight'] text=''
+  [9] class=['Txt_R', 'Popular'] text='---.-'
+  [10] class=['Popular', 'Popular_Ninki', 'Txt_C'] text='**'
+  [11] class=['FavRegist', 'Txt_C'] text=''
+  [12] class=['FavMemo'] text=''
+  [13] class=['Note0'] text='編集'
+  [14] class=['Note1'] text='編集'
