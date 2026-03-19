@@ -230,7 +230,9 @@
   }
 
   function buildRaceCard(race) {
+    const raceNumStr = race.race_num ? `${race.race_num}R` : '';
     const metaParts = [
+      raceNumStr,
       race.venue,
       (race.surface || '') + (race.distance_m ? race.distance_m + 'm' : ''),
       race.condition,
@@ -285,9 +287,13 @@
 
       const fc = data.filter_conditions || {};
       if (fc.min_pred_prob != null) {
+        let chips = `<span class="chip">予測勝率 ≥ ${(fc.min_pred_prob * 100).toFixed(0)}%</span>`;
+        if (fc.max_odds != null) chips += `<span class="chip">オッズ ≤ ${fc.max_odds} 倍</span>`;
+        metaFilter.innerHTML = chips;
+      } else if (fc.ev_positive != null) {
         metaFilter.innerHTML =
-          `<span class="chip">予測勝率 ≥ ${(fc.min_pred_prob * 100).toFixed(0)}%</span>` +
-          `<span class="chip">オッズ ≤ ${fc.max_odds} 倍</span>`;
+          `<span class="chip">EV+（期待値 &gt; 1）</span>` +
+          `<span class="chip">オッズ ≤ ${fc.max_odds ?? 20} 倍</span>`;
       }
 
       metaCount.innerHTML =
