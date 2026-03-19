@@ -35,6 +35,7 @@ RACE_RESULT_URL  = "https://race.netkeiba.com/top/race_result_sub.html"
 DB_RACE_LIST_URL = "https://db.netkeiba.com/"
 SHUTUBA_URL      = "https://race.netkeiba.com/race/shutuba.html"
 SHUTUBA_SP_URL   = "https://race.sp.netkeiba.com/race/shutuba.html"
+ODDS_URL         = "https://race.netkeiba.com/odds/index.html"
 
 HEADERS = {
     "User-Agent": (
@@ -303,6 +304,77 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
     }
 
 
+# ─── 単勝オッズ取得 ──────────────────────────────────────────────────────────
+
+async def _fetch_odds(
+    session: aiohttp.ClientSession,
+    race_id: str,
+) -> dict[int, tuple[Optional[float], Optional[int]]]:
+    """
+    単勝オッズページから 馬番 → (オッズ, 人気) を返す。
+    取得失敗時は {}。
+    """
+    url = f"{ODDS_URL}?race_id={race_id}&type=b1"
+    try:
+        async with session.get(url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+            if resp.status != 200:
+                logger.debug(f"odds page HTTP {resp.status}: {race_id}")
+                return {}
+            html = await resp.text(encoding="euc_jp", errors="replace")
+    except Exception as e:
+        logger.debug(f"odds page error {race_id}: {e}")
+        return {}
+
+    soup = BeautifulSoup(html, "lxml")
+
+    # 単勝テーブル: id="odds_tan_table" または class に OddsTansho/odds_tan を含む
+    table = soup.find("table", id=re.compile(r"odds_tan", re.I))
+    if table is None:
+        table = soup.find("table", class_=re.compile(r"OddsTansho|odds_tan", re.I))
+    if table is None:
+        logger.debug(f"odds table not found: {race_id}")
+        return {}
+
+    odds_map: dict[int, float] = {}
+    for row in table.find_all("tr"):
+        cells = row.find_all("td")
+        if len(cells) < 3:
+            continue
+
+        # 馬番: 最初の 1-18 の整数セル
+        horse_num = None
+        for td in cells[:3]:
+            try:
+                n = int(td.get_text(strip=True))
+                if 1 <= n <= 18:
+                    horse_num = n
+                    break
+            except ValueError:
+                continue
+        if horse_num is None:
+            continue
+
+        # オッズ: "数字.数字" のパターンのセル
+        for td in cells:
+            txt = td.get_text(strip=True).replace(",", "")
+            if re.match(r"^\d+\.\d+$", txt):
+                try:
+                    v = float(txt)
+                    if 1.0 <= v <= 9999.9:
+                        odds_map[horse_num] = v
+                        break
+                except ValueError:
+                    pass
+
+    if not odds_map:
+        return {}
+
+    # 人気: オッズ昇順ランク
+    sorted_nums = sorted(odds_map, key=lambda n: odds_map[n])
+    popularity_map = {num: rank + 1 for rank, num in enumerate(sorted_nums)}
+    return {n: (odds_map[n], popularity_map[n]) for n in odds_map}
+
+
 # ─── 出馬表フェッチ ───────────────────────────────────────────────────────────
 
 async def fetch_shutuba(
@@ -325,6 +397,9 @@ async def fetch_shutuba(
                     result = _parse_shutuba(race_id, html)
                     if result:
                         logger.info(f"OK(PC) {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
+                        # オッズが全て None の場合、単勝オッズページから補完
+                        if all(h["odds"] is None for h in result["horses"]):
+                            await _fill_odds(session, race_id, result)
                         return result
                 else:
                     logger.warning(f"shutuba PC failed {race_id}: HTTP {resp.status}")
@@ -341,6 +416,8 @@ async def fetch_shutuba(
                     result = _parse_shutuba(race_id, html)
                     if result:
                         logger.info(f"OK(SP) {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
+                        if all(h["odds"] is None for h in result["horses"]):
+                            await _fill_odds(session, race_id, result)
                         return result
                     else:
                         logger.warning(f"shutuba SP parse failed {race_id}")
@@ -350,6 +427,26 @@ async def fetch_shutuba(
             logger.warning(f"shutuba SP error {race_id}: {e}")
 
     return None
+
+
+async def _fill_odds(
+    session: aiohttp.ClientSession,
+    race_id: str,
+    result: dict,
+) -> None:
+    """出馬表の odds が全 None のとき単勝オッズページで補完する（in-place）。"""
+    await asyncio.sleep(random.uniform(0.3, 0.6))
+    odds_data = await _fetch_odds(session, race_id)
+    if not odds_data:
+        return
+    filled = 0
+    for h in result["horses"]:
+        entry = odds_data.get(h["horse_num"])
+        if entry:
+            h["odds"], h["popularity"] = entry
+            filled += 1
+    if filled:
+        logger.info(f"  odds補完({filled}頭): {race_id}")
 
 
 # ─── メインエントリ ───────────────────────────────────────────────────────────
