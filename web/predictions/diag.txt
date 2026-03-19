@@ -8,3 +8,43 @@ race_id=202606020805
 HTTP 404 | race_id_matches: 0 | https://race.netkeiba.com/top/race_result_sub.html?kaisai_date=20260322
 HTTP 200 | race_id_matches: 0 | https://db.netkeiba.com/?pid=race_list&date=20260322
 HTTP 200 | race_id_matches: 0 | https://race.netkeiba.com/top/race_list.html?kaisai_date=20260322
+
+=== Shutuba HTML structure for 202606020801 ===
+HTTP status: 200
+<table class="Shutuba_Table RaceTable01 ShutubaTable"
+<table class="Table_Compatibility"
+HorseName
+Shutuba_Table
+Umaban
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="EUC-JP">
+
+<!-- block=common__meta_tag_each_race (cg) -->
+<meta http-equiv="content-language" content="ja">
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=1000">
+<meta name="format-detection" content="telephone=no" />
+<meta name="description" content="2026年3月22日 中山1R ３歳未勝利の出馬表です。JRA開催レースの出馬表や最新オッズ、レース結果速報、払戻情報をはじめ、競馬予想やデータ分析など予想に役立つ情報も満載です。" />
+<meta name="keywords" content="競馬,keiba,出馬表,オッズ,予想,レース結果,払戻し,結果R報,競馬?想,ネット競馬,netkeiba" />
+<meta name="thumbnail" content="https://www.netkeiba.com/style/netkeiba.ja/image/netkeiba.png" />
+<!-- ogp用 -->
+<meta property="og:site_name" content="netkeiba" />
+<meta property="og:type" content="article" />
+<meta property="og:title" content="３歳未勝利 出馬表 | 2026年3月22日 中山1R レース情報(JRA) - netkeiba" />
+<meta property="og:url" content="https://race.netkeiba.com/race/shutuba.html?race_id=202606020801" />
+<meta property="og:description" content="2026年3月22日 中山1R ３歳未勝利の出馬表です。JRA開催レースの出馬表や最新オッズ、レース結果速報、払戻情報をはじめ、競馬予想やデータ分析など予想に役立つ情報も満載です。" />
+<meta property="og:image" content="https://www.netkeiba.com/style/netkeiba.ja/image/netkeiba.png" />
+<!-- Twitter用 -->
+<meta property="twitter:card" content="summary">
+<meta property="twitter:site" content="@netkeiba">
+<link rel="canonical" href="https://race.netkeiba.com/race/shutuba.html?race_id=202606020801" />
+<link rel="alternate" media="only screen and (max-width: 640px)" href="https://race.sp.netkeiba.com/race/shutuba.html?race_id=202606020801" />
+<link rel="alternate" type="application/rss+xml" href="https://rss.netkeiba.com?pid=rss_netkeiba&site=netkeiba" />
+<!-- アノテーション -->
+<title>３歳未勝利 出馬表 | 2026年3月22日 中山1R レース情報(JRA) - netkeiba</title>
+<script type="application/ld+json">
+[
+{
+"@context": "ht
