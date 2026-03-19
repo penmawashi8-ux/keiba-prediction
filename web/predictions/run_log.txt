@@ -1,50 +1,70 @@
-09:57:17 [INFO] === 予測開始: 2026-03-15 ===
-09:57:17 [INFO] モデル読み込み: lgbm_model.txt (rounds=112)
-09:57:17 [INFO] 出馬表スクレイピング中...
-09:57:17 [INFO] race_list: 20260315 → seed 36件 (https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=20260315)
-09:57:17 [INFO] race_list: 20260315 → seed 36件 / プレフィックス 3会場 / 展開後 36件
-09:57:18 [INFO] OK(PC) 202606020604: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:19 [INFO] OK(PC) 202606020605: 1R2R3R4R5R6R7R8R9R10R11R12R (18頭)
-09:57:19 [INFO] OK(PC) 202606020601: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:19 [INFO] OK(PC) 202606020602: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:19 [INFO] OK(PC) 202606020603: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:20 [INFO] OK(PC) 202606020606: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:20 [INFO] OK(PC) 202606020608: 1R2R3R4R5R6R7R8R9R10R11R12R (10頭)
-09:57:20 [INFO] OK(PC) 202606020609: 1R2R3R4R5R6R7R8R9R10R11R12R (11頭)
-09:57:20 [INFO] OK(PC) 202606020607: 1R2R3R4R5R6R7R8R9R10R11R12R (15頭)
-09:57:20 [INFO] OK(PC) 202606020610: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:21 [INFO] OK(PC) 202606020612: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:21 [INFO] OK(PC) 202609010802: 1R2R3R4R5R6R7R8R9R10R11R12R (14頭)
-09:57:21 [INFO] OK(PC) 202609010801: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:21 [INFO] OK(PC) 202606020611: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:22 [INFO] OK(PC) 202609010803: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:22 [INFO] OK(PC) 202609010804: 1R2R3R4R5R6R7R8R9R10R11R12R (14頭)
-09:57:22 [INFO] OK(PC) 202609010805: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:22 [INFO] OK(PC) 202609010806: 1R2R3R4R5R6R7R8R9R10R11R12R (11頭)
-09:57:23 [INFO] OK(PC) 202609010807: 1R2R3R4R5R6R7R8R9R10R11R12R (13頭)
-09:57:23 [INFO] OK(PC) 202609010808: 1R2R3R4R5R6R7R8R9R10R11R12R (11頭)
-09:57:23 [INFO] OK(PC) 202609010809: 1R2R3R4R5R6R7R8R9R10R11R12R (7頭)
-09:57:23 [INFO] OK(PC) 202609010810: 1R2R3R4R5R6R7R8R9R10R11R12R (14頭)
-09:57:24 [INFO] OK(PC) 202609010811: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:24 [INFO] OK(PC) 202609010812: 1R2R3R4R5R6R7R8R9R10R11R12R (13頭)
-09:57:24 [INFO] OK(PC) 202607010201: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:24 [INFO] OK(PC) 202607010202: 1R2R3R4R5R6R7R8R9R10R11R12R (13頭)
-09:57:24 [INFO] OK(PC) 202607010203: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:25 [INFO] OK(PC) 202607010204: 1R2R3R4R5R6R7R8R9R10R11R12R (18頭)
-09:57:25 [INFO] OK(PC) 202607010205: 1R2R3R4R5R6R7R8R9R10R11R12R (15頭)
-09:57:25 [INFO] OK(PC) 202607010206: 1R2R3R4R5R6R7R8R9R10R11R12R (16頭)
-09:57:26 [INFO] OK(PC) 202607010207: 1R2R3R4R5R6R7R8R9R10R11R12R (15頭)
-09:57:26 [INFO] OK(PC) 202607010208: 1R2R3R4R5R6R7R8R9R10R11R12R (12頭)
-09:57:26 [INFO] OK(PC) 202607010209: 1R2R3R4R5R6R7R8R9R10R11R12R (15頭)
-09:57:26 [INFO] OK(PC) 202607010210: 1R2R3R4R5R6R7R8R9R10R11R12R (12頭)
-09:57:26 [INFO] OK(PC) 202607010211: 1R2R3R4R5R6R7R8R9R10R11R12R (14頭)
-09:57:27 [INFO] OK(PC) 202607010212: 1R2R3R4R5R6R7R8R9R10R11R12R (18頭)
-09:57:27 [INFO] 取得: 36レース 523頭
-09:57:27 [INFO] stats merge: 馬 182/523 件マッチ, 騎手 37/523 件マッチ
-09:57:27 [INFO] 予測完了: pred_prob 中央値=0.0485
-/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/site-packages/pandas/core/computation/expressions.py:73: RuntimeWarning: invalid value encountered in greater
-  return op(a, b)
-09:57:27 [INFO] フィルタ後: 0買い目 / 0レース (pred>1/odds[EV+], odds<=20.0)
-09:57:27 [INFO] 保存: /home/runner/work/keiba-prediction/keiba-prediction/web/predictions/latest.json
+10:25:26 [INFO] === 予測開始: 2026-03-15 ===
+10:25:26 [INFO] モデル読み込み: lgbm_model.txt (rounds=112)
+10:25:26 [INFO] 出馬表スクレイピング中...
+10:25:26 [INFO] race_list: 20260315 → seed 36件 (https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=20260315)
+10:25:26 [INFO] race_list: 20260315 → seed 36件 / プレフィックス 3会場 / 展開後 36件
+10:25:27 [INFO] OK(PC) 202606020603: 3歳未勝利 (16頭)
+10:25:28 [INFO] OK(PC) 202606020601: 3歳未勝利 (16頭)
+10:25:28 [INFO] OK(PC) 202606020605: 3歳未勝利 (18頭)
+10:25:28 [INFO] OK(PC) 202606020602: 3歳未勝利 (16頭)
+10:25:28 [INFO] OK(PC) 202606020604: 3歳未勝利 (16頭)
+10:25:28 [INFO] OK(PC) 202606020606: 4歳以上1勝クラス (16頭)
+10:25:29 [INFO] OK(PC) 202606020609: 阿見特別 (11頭)
+10:25:29 [INFO] OK(PC) 202606020607: 3歳1勝クラス (15頭)
+10:25:29 [INFO] OK(PC) 202606020608: 4歳以上2勝クラス (10頭)
+10:25:29 [INFO] OK(PC) 202606020610: 東風S (16頭)
+10:25:30 [INFO] OK(PC) 202606020612: 4歳以上1勝クラス (16頭)
+10:25:30 [INFO] OK(PC) 202606020611: スプリングS (16頭)
+10:25:30 [INFO] OK(PC) 202609010801: 3歳未勝利 (16頭)
+10:25:31 [INFO] OK(PC) 202609010803: 3歳未勝利 (16頭)
+10:25:31 [INFO] OK(PC) 202609010802: 3歳未勝利 (14頭)
+10:25:31 [INFO] OK(PC) 202609010804: 4歳以上障害未勝利 (14頭)
+10:25:31 [INFO] OK(PC) 202609010805: 3歳未勝利 (16頭)
+10:25:32 [INFO] OK(PC) 202609010807: 4歳以上1勝クラス (13頭)
+10:25:32 [INFO] OK(PC) 202609010806: 3歳1勝クラス (11頭)
+10:25:32 [INFO] OK(PC) 202609010808: 4歳以上2勝クラス (11頭)
+10:25:32 [INFO] OK(PC) 202609010809: ゆきやなぎ賞 (7頭)
+10:25:33 [INFO] OK(PC) 202609010811: 米子城S (16頭)
+10:25:33 [INFO] OK(PC) 202609010810: 甲南S (14頭)
+10:25:33 [INFO] OK(PC) 202609010812: 4歳以上2勝クラス (13頭)
+10:25:33 [INFO] OK(PC) 202607010201: 3歳未勝利 (16頭)
+10:25:34 [INFO] OK(PC) 202607010202: 3歳未勝利 (13頭)
+10:25:34 [INFO] OK(PC) 202607010204: 3歳未勝利 (18頭)
+10:25:34 [INFO] OK(PC) 202607010203: 3歳未勝利 (16頭)
+10:25:34 [INFO] OK(PC) 202607010205: 3歳未勝利 (15頭)
+10:25:35 [INFO] OK(PC) 202607010206: 4歳以上1勝クラス (16頭)
+10:25:35 [INFO] OK(PC) 202607010207: 4歳以上1勝クラス (15頭)
+10:25:35 [INFO] OK(PC) 202607010208: 4歳以上1勝クラス (12頭)
+10:25:36 [INFO] OK(PC) 202607010209: 伊良湖特別 (15頭)
+10:25:36 [INFO] OK(PC) 202607010210: 昇竜S (12頭)
+10:25:36 [INFO] OK(PC) 202607010211: 金鯱賞 (14頭)
+10:25:36 [INFO] OK(PC) 202607010212: 4歳以上1勝クラス (18頭)
+10:25:36 [INFO] 取得: 36レース 523頭
+10:25:37 [INFO] stats merge: 馬 182/523 件マッチ, 騎手 37/523 件マッチ
+10:25:37 [INFO] 予測完了: pred_prob 中央値=0.0485
+10:25:37 [INFO] フィルタ後: 97買い目 / 25レース (pred>1/odds[EV+], odds<=20.0)
 [LightGBM] [Warning] Ignoring unrecognized parameter 'bagging_by_query' found in model string.
 [LightGBM] [Warning] Ignoring unrecognized parameter 'early_stopping_min_delta' found in model string.
+Traceback (most recent call last):
+  File "/home/runner/work/keiba-prediction/keiba-prediction/src/predict/predict_today.py", line 271, in <module>
+    main(args.date)
+  File "/home/runner/work/keiba-prediction/keiba-prediction/src/predict/predict_today.py", line 256, in main
+    _save(result)
+  File "/home/runner/work/keiba-prediction/keiba-prediction/src/predict/predict_today.py", line 262, in _save
+    json.dump(data, f, ensure_ascii=False, indent=2)
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/json/__init__.py", line 179, in dump
+    for chunk in iterable:
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/json/encoder.py", line 432, in _iterencode
+    yield from _iterencode_dict(o, _current_indent_level)
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/json/encoder.py", line 326, in _iterencode_list
+    yield from chunks
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/json/encoder.py", line 406, in _iterencode_dict
+    yield from chunks
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/json/encoder.py", line 439, in _iterencode
+    o = _default(o)
+        ^^^^^^^^^^^
+  File "/opt/hostedtoolcache/Python/3.11.15/x64/lib/python3.11/json/encoder.py", line 180, in default
+    raise TypeError(f'Object of type {o.__class__.__name__} '
+TypeError: Object of type int64 is not JSON serializable
