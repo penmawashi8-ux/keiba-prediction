@@ -76,26 +76,14 @@ async def _fetch_race_ids_from_url(
         logger.warning(f"race_list fetch error ({url}): {e}")
         return []
 
-    soup = BeautifulSoup(html, "lxml")
+    # 生HTMLテキストから直接検索（JavaScript内の記述も含む）
     race_ids: list[str] = []
     seen: set[str] = set()
-
-    # <a href="...?race_id=..."> パターン
-    for a in soup.find_all("a", href=True):
-        m = re.search(r"race_id=(\d{12,})", a["href"])
-        if m and m.group(1) not in seen:
-            seen.add(m.group(1))
-            race_ids.append(m.group(1))
-
-    # data属性や onclick にも含まれる場合があるため追加検索
-    for tag in soup.find_all(True):
-        for attr_val in tag.attrs.values():
-            if isinstance(attr_val, str):
-                for m in re.finditer(r"race_id=(\d{12,})", attr_val):
-                    rid = m.group(1)
-                    if rid not in seen:
-                        seen.add(rid)
-                        race_ids.append(rid)
+    for m in re.finditer(r"race_id=(\d{12,})", html):
+        rid = m.group(1)
+        if rid not in seen:
+            seen.add(rid)
+            race_ids.append(rid)
 
     return race_ids
 
@@ -327,12 +315,12 @@ async def fetch_shutuba(
     async with semaphore:
         await asyncio.sleep(random.uniform(0.5, 1.0))
 
-        # PC サイト (UTF-8)
+        # PC サイト (EUC-JP)
         url_pc = f"{SHUTUBA_URL}?race_id={race_id}"
         try:
             async with session.get(url_pc, timeout=aiohttp.ClientTimeout(total=20)) as resp:
                 if resp.status == 200:
-                    html = await resp.text(encoding="utf-8", errors="replace")
+                    html = await resp.text(encoding="euc_jp", errors="replace")
                     result = _parse_shutuba(race_id, html)
                     if result:
                         logger.info(f"OK(PC) {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
