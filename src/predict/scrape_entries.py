@@ -324,17 +324,18 @@ async def _fetch_odds_json(
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
             if resp.status != 200:
-                logger.debug(f"odds JSON API HTTP {resp.status}: {race_id}")
+                logger.warning(f"odds JSON API HTTP {resp.status}: {race_id}")
                 return {}
             text = await resp.text(encoding="utf-8", errors="replace")
+            logger.info(f"  odds JSON API raw({race_id}): HTTP200 len={len(text)} first200={text[:200]!r}")
     except Exception as e:
-        logger.debug(f"odds JSON API error {race_id}: {e}")
+        logger.warning(f"odds JSON API error {race_id}: {e}")
         return {}
 
     try:
         data = json.loads(text)
     except json.JSONDecodeError as e:
-        logger.debug(f"odds JSON parse error {race_id}: {e} / text[:200]={text[:200]!r}")
+        logger.warning(f"odds JSON parse error {race_id}: {e} / text[:200]={text[:200]!r}")
         return {}
 
     # レスポンス形式を解析 (複数パターン対応)
@@ -352,7 +353,7 @@ async def _fetch_odds_json(
         return {}
 
     if not odds_raw:
-        logger.debug(f"odds JSON empty Odds field {race_id}: top keys={list(data.keys()) if isinstance(data, dict) else type(data)}")
+        logger.warning(f"odds JSON empty Odds field {race_id}: top keys={list(data.keys()) if isinstance(data, dict) else type(data)}")
         return {}
 
     odds_map: dict[int, float] = {}
@@ -396,7 +397,7 @@ async def _fetch_odds_json(
                 pass
 
     if not odds_map:
-        logger.debug(f"odds JSON: no valid odds parsed for {race_id} / raw keys={list(odds_raw.keys())[:5]}")
+        logger.warning(f"odds JSON: no valid odds parsed for {race_id} / raw keys={list(odds_raw.keys())[:5]} / sample={list(odds_raw.items())[:2]}")
         return {}
 
     # 人気がAPIから取得できなかった場合はオッズ昇順で計算

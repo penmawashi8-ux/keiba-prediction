@@ -92,32 +92,45 @@ jobs:
 
       - name: Test odds JSON API (known race_id)
         run: |
-          python3 - << 'PYEOF'
+          python3 - << 'PYEOF' | tee web/predictions/odds_api_test.txt
           import asyncio, aiohttp, json, sys, logging
           logging.basicConfig(level=logging.INFO, stream=sys.stdout,
                               format='%(asctime)s [%(levelname)s] %(message)s')
           sys.path.insert(0, '.')
-          from src.predict.scrape_entries import _fetch_odds_json, _fetch_odds, HEADERS
+          from src.predict.scrape_entries import _fetch_odds_json, _fetch_odds_html, HEADERS
+          import aiohttp as _aio
 
           # 2026-03-15 中山1R (確実に存在するrace_id)
           TEST_RACE_ID = "202606020601"
 
           async def main():
-              async with aiohttp.ClientSession(headers=HEADERS) as session:
+              async with _aio.ClientSession(headers=HEADERS) as session:
                   print(f"=== JSON API テスト: {TEST_RACE_ID} ===")
+                  # 生レスポンスを直接確認
+                  url = f"https://race.netkeiba.com/api/api_get_jra_odds.html?race_id={TEST_RACE_ID}&type=1&action=update"
+                  try:
+                      async with session.get(url, timeout=_aio.ClientTimeout(total=20)) as resp:
+                          print(f"HTTP status: {resp.status}")
+                          print(f"Content-Type: {resp.headers.get('Content-Type', 'unknown')}")
+                          text = await resp.text(encoding="utf-8", errors="replace")
+                          print(f"Response length: {len(text)}")
+                          print(f"Response (first 500 chars):\n{text[:500]}")
+                  except Exception as e:
+                      print(f"ERROR: {e}")
+                      return
+
                   result = await _fetch_odds_json(session, TEST_RACE_ID)
                   if result:
-                      print(f"SUCCESS: {len(result)}頭分のオッズ取得")
-                      for num, (odds, pop) in sorted(result.items())[:5]:
+                      print(f"\nSUCCESS: {len(result)}頭分のオッズ取得")
+                      for num, (odds, pop) in sorted(result.items()):
                           print(f"  馬番{num}: odds={odds}, 人気={pop}")
                   else:
-                      print("FAIL: JSON APIからオッズ取得できず")
-                      # HTMLフォールバックも試す
-                      print("=== HTML fallback テスト ===")
-                      from src.predict.scrape_entries import _fetch_odds_html
+                      print("\nFAIL: JSON APIからオッズ取得できず → HTML fallbackを試す")
                       result2 = await _fetch_odds_html(session, TEST_RACE_ID)
                       if result2:
                           print(f"HTML fallback SUCCESS: {len(result2)}頭分")
+                          for num, (odds, pop) in sorted(result2.items()):
+                              print(f"  馬番{num}: odds={odds}, 人気={pop}")
                       else:
                           print("HTML fallback FAIL")
 
@@ -249,3 +262,4 @@ jobs:
           commit_file web/predictions/run_log.txt
           commit_file web/predictions/diag.txt
           commit_file web/predictions/parse_test.txt
+          commit_file web/predictions/odds_api_test.txt
