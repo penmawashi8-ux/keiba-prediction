@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-03-19T18:29:04+09:00",
-  "updated_at": "2026-03-19T18:29:04+09:00",
+  "generated_at": "2026-03-19T18:43:16+09:00",
+  "updated_at": "2026-03-19T18:43:16+09:00",
   "target_date": "2026-03-22",
   "filter_conditions": {
     "ev_positive": "pred_prob > 1/odds",
@@ -8,6 +8,5 @@
   },
   "total_bets": 0,
   "total_races": 0,
-  "races": [],
-  "note": "出走馬データを取得できませんでした"
+  "races": []
 }
