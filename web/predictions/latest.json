@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-03-19T18:02:45+09:00",
-  "updated_at": "2026-03-19T18:02:45+09:00",
-  "target_date": "2026-03-15",
+  "generated_at": "2026-03-19T18:06:05+09:00",
+  "updated_at": "2026-03-19T18:06:05+09:00",
+  "target_date": "2026-03-22",
   "filter_conditions": {
     "ev_positive": "pred_prob > 1/odds",
     "max_odds": 20.0
