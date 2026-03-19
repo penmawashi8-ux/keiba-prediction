@@ -90,6 +90,40 @@ jobs:
           mkdir -p web/predictions
           cp /tmp/diag_result.txt web/predictions/diag.txt
 
+      - name: Test odds JSON API (known race_id)
+        run: |
+          python3 - << 'PYEOF'
+          import asyncio, aiohttp, json, sys, logging
+          logging.basicConfig(level=logging.INFO, stream=sys.stdout,
+                              format='%(asctime)s [%(levelname)s] %(message)s')
+          sys.path.insert(0, '.')
+          from src.predict.scrape_entries import _fetch_odds_json, _fetch_odds, HEADERS
+
+          # 2026-03-15 中山1R (確実に存在するrace_id)
+          TEST_RACE_ID = "202606020601"
+
+          async def main():
+              async with aiohttp.ClientSession(headers=HEADERS) as session:
+                  print(f"=== JSON API テスト: {TEST_RACE_ID} ===")
+                  result = await _fetch_odds_json(session, TEST_RACE_ID)
+                  if result:
+                      print(f"SUCCESS: {len(result)}頭分のオッズ取得")
+                      for num, (odds, pop) in sorted(result.items())[:5]:
+                          print(f"  馬番{num}: odds={odds}, 人気={pop}")
+                  else:
+                      print("FAIL: JSON APIからオッズ取得できず")
+                      # HTMLフォールバックも試す
+                      print("=== HTML fallback テスト ===")
+                      from src.predict.scrape_entries import _fetch_odds_html
+                      result2 = await _fetch_odds_html(session, TEST_RACE_ID)
+                      if result2:
+                          print(f"HTML fallback SUCCESS: {len(result2)}頭分")
+                      else:
+                          print("HTML fallback FAIL")
+
+          asyncio.run(main())
+          PYEOF
+
       - name: Test scraper parsing
         run: |
           DATE="${{ inputs.date || github.event.inputs.date }}"
@@ -143,6 +177,10 @@ jobs:
         run: |
           # workflow_dispatch と workflow_call の両方で date を取得
           DATE="${{ inputs.date || github.event.inputs.date }}"
+          # push trigger では DATE が空になるので直近の土曜 (2026-03-15) を使用
+          if [ -z "$DATE" ] && [ "${{ github.event_name }}" = "push" ]; then
+            DATE="20260315"
+          fi
           DATE_ARG=""
           if [ -n "$DATE" ]; then
             DATE_ARG="--date $DATE"
