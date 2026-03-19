@@ -338,56 +338,46 @@ async def _fetch_odds_json(
         logger.warning(f"odds JSON parse error {race_id}: {e} / text[:200]={text[:200]!r}")
         return {}
 
-    # レスポンス形式を解析 (複数パターン対応)
-    # 形式A: {"data": {"Odds": {"1": ["3.6", "2"], ...}}}
-    # 形式B: {"data": {"Odds": {"1": {"OddsString": "3.6", "Ninki": "2"}, ...}}}
-    # 形式C: {"Odds": {"1": ["3.6", "2"], ...}}
+    # 実際のレスポンス構造（2026年3月確認）:
+    # {"data": {"odds": {"1": {"01":["340.4","","15"], "02":[...], ...}, "2":{...}}}}
+    # - data.odds["1"] = 単勝 (type=1)
+    # - 馬番は "01","02",...のゼロ埋め2桁
+    # - 値は [オッズ, 複勝下限, 人気] の3要素リスト
     try:
-        odds_raw = (
-            data.get("data", {}).get("Odds")
-            or data.get("Odds")
-            or {}
-        )
+        inner = data.get("data", {})
+        odds_by_type = inner.get("odds") or {}
+        # 単勝 (type "1") を取得
+        odds_raw = odds_by_type.get("1") or {}
     except AttributeError:
-        logger.debug(f"odds JSON unexpected structure {race_id}: {str(data)[:200]}")
+        logger.warning(f"odds JSON unexpected structure {race_id}: {str(data)[:200]}")
         return {}
 
     if not odds_raw:
-        logger.warning(f"odds JSON empty Odds field {race_id}: top keys={list(data.keys()) if isinstance(data, dict) else type(data)}")
+        logger.warning(f"odds JSON empty odds.1 field {race_id}: data keys={list(inner.keys()) if isinstance(inner, dict) else type(inner)}")
         return {}
 
     odds_map: dict[int, float] = {}
     ninki_map: dict[int, int] = {}
 
     for horse_num_str, val in odds_raw.items():
+        # 馬番: "01" → 1, "16" → 16
         try:
             horse_num = int(horse_num_str)
         except (ValueError, TypeError):
             continue
 
-        # 形式A: リスト ["3.6", "2"]
-        if isinstance(val, (list, tuple)) and len(val) >= 2:
+        # val = ["340.4", "", "15"] (index0=オッズ, index1=複勝下限, index2=人気)
+        if isinstance(val, (list, tuple)) and len(val) >= 1:
             try:
                 o = float(str(val[0]).replace(",", ""))
-                p = int(str(val[1]))
                 if 1.0 <= o <= 9999.9:
                     odds_map[horse_num] = o
-                    ninki_map[horse_num] = p
+                    # 人気は index 2
+                    if len(val) >= 3 and str(val[2]).strip():
+                        ninki_map[horse_num] = int(str(val[2]))
             except (ValueError, TypeError):
                 pass
-        # 形式B: 辞書 {"OddsString": "3.6", "Ninki": "2"}
-        elif isinstance(val, dict):
-            try:
-                o_str = val.get("OddsString") or val.get("odds", "")
-                n_str = val.get("Ninki") or val.get("ninki", "0")
-                o = float(str(o_str).replace(",", ""))
-                p = int(str(n_str))
-                if 1.0 <= o <= 9999.9:
-                    odds_map[horse_num] = o
-                    ninki_map[horse_num] = p
-            except (ValueError, TypeError):
-                pass
-        # 形式C: 単純文字列 "3.6"
+        # 後方互換: 単純文字列
         elif isinstance(val, str):
             try:
                 o = float(val.replace(",", ""))
