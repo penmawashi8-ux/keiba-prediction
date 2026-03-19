@@ -4,8 +4,8 @@
 netkeiba.com から当日開催レースの出走馬情報を取得する。
 
 URL 構造:
-  レース一覧: https://race.netkeiba.com/top/race_list_sub.html?kaisai_date={YYYYMMDD}
-  出馬表:     https://race.netkeiba.com/race/shutuba.html?race_id={race_id}
+  レース一覧: https://race.sp.netkeiba.com/top/race_list_sub.html?kaisai_date={YYYYMMDD}
+  出馬表:     https://race.sp.netkeiba.com/race/shutuba.html?race_id={race_id}
 """
 
 import asyncio
@@ -22,16 +22,16 @@ from bs4 import BeautifulSoup
 
 JST = timezone(timedelta(hours=9))
 
-RACE_LIST_URL = "https://race.netkeiba.com/top/race_list_sub.html"
-SHUTUBA_URL   = "https://race.netkeiba.com/race/shutuba.html"
+RACE_LIST_URL = "https://race.sp.netkeiba.com/top/race_list_sub.html"
+SHUTUBA_URL   = "https://race.sp.netkeiba.com/race/shutuba.html"
 
 HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0.0.0 Safari/537.36"
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) "
+        "Version/17.0 Mobile/15E148 Safari/604.1"
     ),
-    "Referer": "https://race.netkeiba.com/",
+    "Referer": "https://race.sp.netkeiba.com/",
 }
 
 SURFACE_MAP   = {"芝": 0, "ダート": 1, "障": 2}
