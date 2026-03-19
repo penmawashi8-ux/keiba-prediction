@@ -52,8 +52,11 @@ async def run(date_str: str) -> None:
     async with aiohttp.ClientSession(headers=HEADERS) as s:
         # race_list URLパターンを複数試す
         for key, url in [
-            ("race_list_sub", f"https://race.netkeiba.com/top/race_list_sub.html?kaisai_date={date_str}"),
-            ("race_list",     f"https://race.netkeiba.com/top/race_list.html?kaisai_date={date_str}"),
+            ("race_list_sub",    f"https://race.netkeiba.com/top/race_list_sub.html?kaisai_date={date_str}"),
+            ("race_list",        f"https://race.netkeiba.com/top/race_list.html?kaisai_date={date_str}"),
+            ("race_result",      f"https://race.netkeiba.com/top/race_result.html?kaisai_date={date_str}"),
+            ("race_result_sub",  f"https://race.netkeiba.com/top/race_result_sub.html?kaisai_date={date_str}"),
+            ("db_race_list",     f"https://db.netkeiba.com/?pid=race_list&date={date_str}"),
         ]:
             try:
                 async with s.get(url, timeout=aiohttp.ClientTimeout(total=20)) as r:
