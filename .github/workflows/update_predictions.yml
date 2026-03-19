@@ -182,5 +182,6 @@ jobs:
           print(d.get('target_date', 'unknown'))
             ")
             git commit -m "chore: update predictions ${TARGET}"
-            git push
+            git pull --rebase origin "$(git branch --show-current)" || true
+            git push origin HEAD:"$(git branch --show-current)"
           fi
