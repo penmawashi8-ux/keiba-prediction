@@ -65,6 +65,22 @@ jobs:
               grep -oP 'race_id=\d{12,}' /tmp/diag.html | sort -u | head -5 | tee -a /tmp/diag_result.txt
             fi
           done
+          # shutubaページの構造確認
+          FIRST_ID=$(grep -oP '\d{12,}' /tmp/diag_result.txt | head -1)
+          if [ -n "$FIRST_ID" ]; then
+            echo "" >> /tmp/diag_result.txt
+            echo "=== Shutuba HTML structure for $FIRST_ID ===" >> /tmp/diag_result.txt
+            curl -s "https://race.netkeiba.com/race/shutuba.html?race_id=${FIRST_ID}" \
+              -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" \
+              -o /tmp/shutuba.html
+            echo "HTTP status: $(curl -s -o /dev/null -w '%{http_code}' 'https://race.netkeiba.com/race/shutuba.html?race_id='${FIRST_ID} -H 'User-Agent: Mozilla/5.0')" >> /tmp/diag_result.txt
+            # テーブルのクラス名を探す
+            grep -oP '<table[^>]+class="[^"]*"' /tmp/shutuba.html | head -10 >> /tmp/diag_result.txt
+            # 馬名パターン
+            grep -oP 'HorseName|horsename|Umaban|umaban|Shutuba_Table|ShutubaTb' /tmp/shutuba.html | sort -u >> /tmp/diag_result.txt
+            # first 2000 chars
+            head -c 2000 /tmp/shutuba.html >> /tmp/diag_result.txt
+          fi
           mkdir -p web/predictions
           cp /tmp/diag_result.txt web/predictions/diag.txt
 
