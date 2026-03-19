@@ -50,65 +50,7 @@ jobs:
           if [ -z "$DATE" ]; then
             DATE=$(python -c "from datetime import datetime,timezone,timedelta; print(datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d'))")
           fi
-          python - "$DATE" <<'PYEOF'
-import asyncio, aiohttp, re, sys, json, pathlib
-from bs4 import BeautifulSoup
-
-DATE = sys.argv[1]
-HEADERS = {
-    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
-    "Referer": "https://race.sp.netkeiba.com/",
-}
-
-results = {}
-
-async def diag():
-    async with aiohttp.ClientSession(headers=HEADERS) as s:
-        # race_list URLを試す
-        for key, url in [
-            ("race_list_sub", f"https://race.sp.netkeiba.com/top/race_list_sub.html?kaisai_date={DATE}"),
-            ("race_list",     f"https://race.sp.netkeiba.com/top/race_list.html?kaisai_date={DATE}"),
-        ]:
-            try:
-                async with s.get(url, timeout=aiohttp.ClientTimeout(total=15)) as r:
-                    html = await r.text(encoding="utf-8", errors="replace")
-                    soup = BeautifulSoup(html, "lxml")
-                    ids = []
-                    seen = set()
-                    for a in soup.find_all("a", href=True):
-                        m = re.search(r"race_id=(\d{12,})", a["href"])
-                        if m and m.group(1) not in seen:
-                            seen.add(m.group(1)); ids.append(m.group(1))
-                    for tag in soup.find_all(True):
-                        for v in tag.attrs.values():
-                            if isinstance(v, str):
-                                for m2 in re.finditer(r"race_id=(\d{12,})", v):
-                                    if m2.group(1) not in seen:
-                                        seen.add(m2.group(1)); ids.append(m2.group(1))
-                    results[key] = {"status": r.status, "race_ids": ids, "html_head": html[:300]}
-                    print(f"[{r.status}] {key}: {len(ids)} race_ids → {ids[:5]}")
-                    print(f"  html_head: {html[:200].replace(chr(10),' ')}")
-            except Exception as e:
-                results[key] = {"error": str(e)}
-                print(f"ERROR {key}: {e}")
-
-        # 既知shutuba: 中山1R 3/15
-        known_id = "202606020601"
-        url2 = f"https://race.sp.netkeiba.com/race/shutuba.html?race_id={known_id}"
-        try:
-            async with s.get(url2, timeout=aiohttp.ClientTimeout(total=15)) as r:
-                html2 = await r.text(encoding="utf-8", errors="replace")
-                results["shutuba_known"] = {"status": r.status, "html_head": html2[:500]}
-                print(f"\n[{r.status}] shutuba({known_id})")
-                print(f"  html_head: {html2[:400].replace(chr(10),' ')}")
-        except Exception as e:
-            results["shutuba_known"] = {"error": str(e)}
-            print(f"ERROR shutuba: {e}")
-
-asyncio.run(diag())
-pathlib.Path("docs/predictions/debug.json").write_text(json.dumps(results, ensure_ascii=False, indent=2))
-print("\ndiagnostics written to docs/predictions/debug.json")
-PYEOF
+          python src/predict/diagnose.py "$DATE"
 
       - name: Run prediction
         run: |
