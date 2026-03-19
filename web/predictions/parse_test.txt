@@ -1,0 +1,6 @@
+DEBUG:asyncio:Using selector: EpollSelector
+WARNING:src.predict.scrape_entries:race_list fetch failed: HTTP 404 (https://race.netkeiba.com/top/race_result_sub.html?kaisai_date=$DATE)
+WARNING:src.predict.scrape_entries:race_list fetch failed: HTTP 404 (https://race.netkeiba.com/top/race_result.html?kaisai_date=$DATE)
+WARNING:src.predict.scrape_entries:race_list: $DATE → seed IDs が見つかりませんでした
+
+=== race_ids (0) ===
