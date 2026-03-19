@@ -44,6 +44,63 @@ jobs:
       # モデル (lgbm_model.txt) と stats CSV は src/model/ にコミット済み
       # チェックアウトのみで利用可能 — 追加ダウンロード不要
 
+      - name: Diagnose scraper URLs
+        run: |
+          DATE="${{ inputs.date || github.event.inputs.date }}"
+          if [ -z "$DATE" ]; then
+            DATE=$(python -c "from datetime import datetime,timezone,timedelta; print(datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d'))")
+          fi
+          python - <<PYEOF
+          import asyncio, aiohttp, re
+          from bs4 import BeautifulSoup
+
+          DATE = "$DATE"
+          HEADERS = {
+              "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+              "Referer": "https://race.sp.netkeiba.com/",
+          }
+
+          async def diag():
+              async with aiohttp.ClientSession(headers=HEADERS) as s:
+                  # 1. race_list_sub
+                  for url in [
+                      f"https://race.sp.netkeiba.com/top/race_list_sub.html?kaisai_date={DATE}",
+                      f"https://race.sp.netkeiba.com/top/race_list.html?kaisai_date={DATE}",
+                  ]:
+                      try:
+                          async with s.get(url, timeout=aiohttp.ClientTimeout(total=15)) as r:
+                              html = await r.text(encoding="utf-8", errors="replace")
+                              ids = list(dict.fromkeys(m.group(1) for a in BeautifulSoup(html,"lxml").find_all("a",href=True) if (m:=re.search(r"race_id=(\d{12,})",a["href"]))))
+                              # data属性も検索
+                              soup = BeautifulSoup(html, "lxml")
+                              for tag in soup.find_all(True):
+                                  for v in tag.attrs.values():
+                                      if isinstance(v, str):
+                                          for m2 in re.finditer(r"race_id=(\d{12,})", v):
+                                              if m2.group(1) not in ids:
+                                                  ids.append(m2.group(1))
+                              print(f"[{r.status}] {url}")
+                              print(f"  → race_id数: {len(ids)}")
+                              if ids:
+                                  for i in ids[:5]: print(f"    {i}")
+                              print(f"  HTML先頭200: {html[:200].replace(chr(10),' ')}")
+                      except Exception as e:
+                          print(f"ERROR {url}: {e}")
+
+                  # 2. 既知shutuba (中山1R 3/15)
+                  known = "202606020601"
+                  url2 = f"https://race.sp.netkeiba.com/race/shutuba.html?race_id={known}"
+                  try:
+                      async with s.get(url2, timeout=aiohttp.ClientTimeout(total=15)) as r:
+                          html2 = await r.text(encoding="utf-8", errors="replace")
+                          print(f"\n[{r.status}] {url2}")
+                          print(f"  HTML先頭500: {html2[:500].replace(chr(10),' ')}")
+                  except Exception as e:
+                      print(f"ERROR {url2}: {e}")
+
+          asyncio.run(diag())
+          PYEOF
+
       - name: Run prediction
         run: |
           # workflow_dispatch と workflow_call の両方で date を取得
