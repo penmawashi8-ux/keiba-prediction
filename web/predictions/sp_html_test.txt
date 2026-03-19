@@ -1,0 +1,204 @@
+
+============================================================
+=== SP版: https://race.sp.netkeiba.com/race/shutuba.html?race_id=202606020601 ===
+HTTP: 200
+HTML length: 205186
+
+--- Tables ---
+  table class=['CourseRecord'] id= rows=1
+  table class=['Shutuba_Table'] id= rows=17
+  table class=['Update_Time_Table'] id= rows=5
+  table class=['Update_Time_Table'] id= rows=3
+  table class=['Table_Compatibility'] id= rows=2
+  table class=['RaceCommon_Table', 'Race_HaronTime', 'isFreemium'] id=master_info_new_aiTenkai07 rows=2
+  table class=['Shutuba_Table', 'PredictRap_Table', 'NoCheckData', 'isFreemium'] id= rows=3
+  table class=['RaceCommon_Table', 'PickupHorseTable01'] id= rows=1
+  table class=['RaceCommon_Table', 'PickupHorseTable01'] id= rows=1
+  table class=['RaceCommon_Table', 'PickupHorseTable01'] id= rows=1
+  table class=['RaceCommon_Table', 'PickupHorseTable01'] id= rows=1
+  table class=['Stable_Time'] id= rows=4
+  table class=['Stable_Time'] id= rows=4
+  table class=['Stable_Time'] id= rows=4
+
+--- Table[1] class=['Shutuba_Table'] - First data row cell structure ---
+    [0] class=['Waku1'] text='1' a_hrefs=[] selects=[]
+    [1] class=['Horse_Select'] text='' a_hrefs=[] selects=[]
+    [2] class=['Horse_Info'] text='グラデュエール牝3グラデュエールのデータベース小林脩55.0' a_hrefs=['https://race.sp.netkeiba.com/modal/horse.html?race', 'https://db.sp.netkeiba.com/horse/2023103225/?rf=sh', 'https://db.sp.netkeiba.com/jockey/01183/?rf=shutub'] selects=[]
+    [3] class=['Popular'] text='---.-**人気' a_hrefs=[] selects=[]
+    [4] class=['Weight'] text='422(+4)' a_hrefs=[] selects=[]
+
+--- Key class patterns ---
+  .Num: 17個 sample='2R'
+  .Horse: 156個 sample='LIVE競輪'
+  .Jockey: 16個 sample='小林脩55.0'
+  .Odds: 7個 sample='あと5回'
+  .Popular: 17個 sample='あと5回'
+  .Shutuba: 9個 sample='馬番チェック馬名年齢\xa0騎手\xa0斤量あと5回馬体重(増減)1グラ'
+  .umaban: 25個 sample='7'
+  .horsename: 17個 sample='カンレ'
+  .popular: 17個 sample='あと5回'
+  .odds: 7個 sample='あと5回'
+  .mark_: 2個 sample='無料ID登録が必要です無料ID(netkeibaID)を登録'
+
+--- select[id^=mark_]: 0個 ---
+
+--- Body HTML (first 2000 chars) ---
+<body id="Netkeiba_Race_Shutuba">
+<div class="Wrap fc">
+<!-- block=app_install (d) -->
+<link href="https://cdn.netkeiba.com/img.sp//common/css/head_bnr.css?2018022002" rel="stylesheet"/>
+<div class="HeadBnrWrap" style="background-image:url(https://cdn.netkeiba.com/img.sp//common/img/head_bnr/cms/3049.jpg?v=MjAyNi0wMy0xNyAxMDo1MTozNQ==)">
+<div class="CampaignBox">
+<div class="CampaignVisual">
+<a href="https://netkeiba.onelink.me/cexk/ufjvz8mw" onclick="ga('send','event','bnr','click','app_iOS_inst',1);"><img alt="" src="https://cdn.netkeiba.com/img.sp//common/img/top/bnr_transprent_h155.png" width="100%"/></a>
+</div>
+<div class="CampaignClose">
+<img alt="" src="https://cdn.netkeiba.com/img.sp//common/img/icon/icon_top_jack_close.png" width="30"/>
+</div>
+</div>
+</div><!-- /.AppInstWrap -->
+<script>
+$(function(){
+$('.CampaignClose').click(function(){
+$('.HeadBnrWrap').css({display: 'none'});
+document.cookie = 'app_install_171024=1; max-age=86400;';
+});
+});
+</script>
+<!-- block=race_header (d) -->
+<!-- header id="PageTOP" class="Header_Area fc" -->
+<header class="Header_Area fc">
+<link href="https://cdn.netkeiba.com/img.sp//common/css/header_nk01.css?20250826" media="screen" rel="stylesheet" type="text/css"/>
+<link href="https://cdn.netkeiba.com/img.sp//common/css/new_menu03.css" media="screen" rel="stylesheet" type="text/css"/>
+<!--<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>-->
+<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
+<div class="Header_Inner fc">
+<p class="DrawMenuBtn" id="drawer-toggle">
+<span class="BtnTopBar"></span>
+<span class="BtnMiddleBar"></span>
+<span class="BtnBottomBar"></span>
+</p>
+<h1>
+<a href="https://sp.netkeiba.com/">netkeiba</a>
+</h1>
+<a class="bell_inner" href="javascript:void(0)" id="header_bell">
+<svg height="22" viewbox="0 0 38 45" width="19" xmlns
+
+============================================================
+=== PC版: https://race.netkeiba.com/race/shutuba.html?race_id=202606020601 ===
+HTTP: 200
+HTML length: 247440
+
+--- Tables ---
+  table class=['Shutuba_Table', 'RaceTable01', 'ShutubaTable'] id= rows=18
+  table class=['Table_Compatibility'] id= rows=2
+  table class=['RaceCommon_Table', 'Race_HaronTime', 'isFreemium'] id= rows=2
+  table class=['Shutuba_Table', 'RaceTable01', 'PredictRap_Table', 'NoCheckData', 'isFreemium'] id= rows=3
+  table class=['RaceCommon_Table', 'PickupHorseTable01', 'AnaBestTable'] id= rows=1
+  table class=['RaceCommon_Table', 'PickupHorseTable01', 'AnaBestTable'] id= rows=1
+  table class=['RaceCommon_Table', 'PickupHorseTable01', 'AnaBestTable'] id= rows=1
+  table class=['RaceCommon_Table', 'PickupHorseTable01', 'AnaBestTable'] id= rows=1
+
+--- Table[0] class=['Shutuba_Table', 'RaceTable01', 'ShutubaTable'] - First data row cell structure ---
+    [0] class=['Waku1', 'Txt_C'] text='1' a_hrefs=[] selects=[]
+    [1] class=['Umaban1', 'Txt_C'] text='1' a_hrefs=[] selects=[]
+    [2] class=['CheckMark', 'Horse_Select'] text='--◎◯▲△☆&#10003消' a_hrefs=[] selects=['mark_9']
+    [3] class=['HorseInfo'] text='グラデュエール' a_hrefs=['https://db.netkeiba.com/horse/2023103225'] selects=[]
+    [4] class=['Barei', 'Txt_C'] text='牝3' a_hrefs=[] selects=[]
+    [5] class=['Txt_C'] text='55.0' a_hrefs=[] selects=[]
+    [6] class=['Jockey'] text='小林脩' a_hrefs=['https://db.netkeiba.com/jockey/result/recent/01183'] selects=[]
+    [7] class=['Trainer'] text='美浦粕谷' a_hrefs=['https://db.netkeiba.com/trainer/result/recent/0109'] selects=[]
+    [8] class=['Weight'] text='422(+4)' a_hrefs=[] selects=[]
+    [9] class=['Txt_R', 'Popular'] text='---.-' a_hrefs=[] selects=[]
+    [10] class=['Popular', 'Popular_Ninki', 'Txt_C'] text='**' a_hrefs=[] selects=[]
+    [11] class=['FavRegist', 'Txt_C'] text='' a_hrefs=['https://db.sp.netkeiba.com?pid=horse_bookmark_add&'] selects=[]
+    [12] class=['FavMemo'] text='' a_hrefs=['../popup/horse_bookmark.html?ketto_num=2023103225&'] selects=[]
+    [13] class=['Note0'] text='編集' a_hrefs=['javascript:void(0);'] selects=[]
+    [14] class=['Note1'] text='編集' a_hrefs=['javascript:void(0);'] selects=[]
+
+--- Key class patterns ---
+  .Num: 17個 sample='1R2R3R4R5R6R7R8R9R10R11R12R'
+  .Horse: 300個 sample='お気に入り馬'
+  .Jockey: 17個 sample='騎手'
+  .Odds: 10個 sample='オッズ・購入'
+  .Popular: 34個 sample='更新'
+  .Ninki: 17個 sample='人気'
+  .Shutuba: 14個 sample='お客様のブラウザはジャバスクリプト（JavaScript）に'
+  .umaban: 18個 sample='馬番'
+  .horsename: 33個 sample='馬名'
+  .popular: 34個 sample='更新'
+  .odds: 10個 sample='オッズ・購入'
+  .ninki: 17個 sample='人気'
+  .mark_: 3個 sample='無料ID登録が必要です無料ID(netkeibaID)を登録'
+
+--- select[id^=mark_]: 16個 ---
+  id=mark_9
+  id=mark_12
+  id=mark_25
+
+--- Body HTML (first 2000 chars) ---
+<body class="race page_race_shutuba" id="race_top">
+<div class="Wrap fc" id="page">
+<noscript>
+お客様のブラウザはジャバスクリプト（JavaScript）に対応していないか無効になっています。
+</noscript>
+<!-- block=common__race_header (d) -->
+<link href="https://cdn.netkeiba.com/img.www/style/netkeiba.ja/css/pc_header.css?2025826" media="all" rel="stylesheet" type="text/css"/>
+<header class="Header_Area fc">
+<div class="Header_Inner">
+<h1>
+<a href="https://www.netkeiba.com/?rf=logo" title="netkeiba">
+<img alt="netkeiba" src="https://cdn.netkeiba.com/img.www/style/netkeiba.ja/image/common/netkeiba_logo02.png?20231003"/>
+</a>
+</h1>
+<div class="DB_Search_Input">
+<!-- なんでも検索リニューアル -->
+<span id="gnavi_search_form">
+<img src="https://cdn.netkeiba.com/img.db/common/img/gif_loader.gif"/>
+</span>
+<script>
+$(function(){
+const param = {input: 'UTF-8',output: 'jsonp',};
+$.ajax({type: 'GET',
+url: 'https://cdn.netkeiba.com/img.db/ajax_gnavi_search.html',
+data: param,
+dataType: param.output,
+success: function(data){
+if('OK' == data.status){
+$('#gnavi_search_form').html(data.data);
+}
+}
+});
+});
+</script>
+</div><!-- / .DB_Search_Input -->
+<div class="MyMenuWrap">
+<ul class="UserMyMenu fc">
+<li>
+<a href="https://regist.netkeiba.com/?pid=premium&amp;rf=header">
+<span>プレミアムサービス</span>
+</a>
+</li>
+<li>
+<a class="Icon_Header Icon_MyfavHorse" href="https://race.netkeiba.com/bookmark/bookmark.html?rf=navi">
+<span>お気に入り馬</span>
+</a>
+</li>
+<li>
+<a class="Icon_Header Icon_Note" href="https://race.netkeiba.com/notes/schedule.html?rf=navi">
+<span>メモ</span>
+</a>
+</li>
+<li>
+<a class="Icon_Header Icon_Login" href="https://regist.netkeiba.com/account/?pid=login">
+<span>ログイン/会員登録</span>
+</a>
+</li>
+<li class="disp_none header_stage_area no_login_show">
+<a href="https://regist.netkeiba.com?pid=stage_login&amp;action=login&amp;return_url=https://regist.netkeiba.com">
+<span>(s)ログイン</span>
+</a>
+</li>
+<li class="disp_none header_stage_area no_login_show">
+<a href="https://regist.netkeiba.com?pid=user_add_form&amp;payment=nk_user&amp;goods_cd=310409&amp;o
