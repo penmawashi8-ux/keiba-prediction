@@ -16,11 +16,11 @@ from bs4 import BeautifulSoup
 
 HEADERS = {
     "User-Agent": (
-        "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) "
-        "AppleWebKit/605.1.15 (KHTML, like Gecko) "
-        "Version/17.0 Mobile/15E148 Safari/604.1"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
     ),
-    "Referer": "https://race.sp.netkeiba.com/",
+    "Referer": "https://race.netkeiba.com/",
 }
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -52,8 +52,8 @@ async def run(date_str: str) -> None:
     async with aiohttp.ClientSession(headers=HEADERS) as s:
         # race_list URLパターンを複数試す
         for key, url in [
-            ("race_list_sub", f"https://race.sp.netkeiba.com/top/race_list_sub.html?kaisai_date={date_str}"),
-            ("race_list",     f"https://race.sp.netkeiba.com/top/race_list.html?kaisai_date={date_str}"),
+            ("race_list_sub", f"https://race.netkeiba.com/top/race_list_sub.html?kaisai_date={date_str}"),
+            ("race_list",     f"https://race.netkeiba.com/top/race_list.html?kaisai_date={date_str}"),
         ]:
             try:
                 async with s.get(url, timeout=aiohttp.ClientTimeout(total=20)) as r:
@@ -72,8 +72,8 @@ async def run(date_str: str) -> None:
                 print(f"ERROR {key}: {e}")
 
         # 既知shutuba: 中山1R 3/15 (202606020601)
-        for known_id in ["202606020601", "202606020602"]:
-            url2 = f"https://race.sp.netkeiba.com/race/shutuba.html?race_id={known_id}"
+        for known_id in ["202606020601", "202606020608"]:
+            url2 = f"https://race.netkeiba.com/race/shutuba.html?race_id={known_id}"
             try:
                 async with s.get(url2, timeout=aiohttp.ClientTimeout(total=20)) as r:
                     html2 = await r.text(encoding="utf-8", errors="replace")
