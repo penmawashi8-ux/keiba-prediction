@@ -5,6 +5,12 @@ on:
     # 毎週土曜 8:00 JST (= 金曜 23:00 UTC)
     # 前日オッズが確定した朝に実行
     - cron: '0 23 * * 5'
+  push:
+    branches:
+      - 'claude/fix-popularity-bias-BybFi'
+    paths:
+      - 'src/predict/**'
+      - '.github/workflows/update_predictions.yml'
   workflow_dispatch:
     inputs:
       date:
