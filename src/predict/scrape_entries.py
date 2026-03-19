@@ -6,6 +6,14 @@ netkeiba.com から当日開催レースの出走馬情報を取得する。
 URL 構造:
   レース一覧: https://race.netkeiba.com/top/race_list_sub.html?kaisai_date={YYYYMMDD}
   出馬表:     https://race.netkeiba.com/race/shutuba.html?race_id={race_id}
+
+race_list_sub.html はJavaScriptで動的描画されるため、静的HTMLには
+グレードレース等の一部リンクしか含まれない（4件程度）。
+そこで取得した race_id のプレフィックス (YYYYVVKKDD, 10桁) ごとに
+R01〜R12 を全生成することで全レースを補完する。
+
+過去日付では race_list_sub.html が 404 を返すため、
+race_result_sub.html / db.netkeiba.com をフォールバックとして使用する。
 """
 
 import asyncio
@@ -22,8 +30,11 @@ from bs4 import BeautifulSoup
 
 JST = timezone(timedelta(hours=9))
 
-RACE_LIST_URL = "https://race.netkeiba.com/top/race_list_sub.html"
-SHUTUBA_URL   = "https://race.netkeiba.com/race/shutuba.html"
+RACE_LIST_URL    = "https://race.netkeiba.com/top/race_list_sub.html"
+RACE_RESULT_URL  = "https://race.netkeiba.com/top/race_result_sub.html"
+DB_RACE_LIST_URL = "https://db.netkeiba.com/"
+SHUTUBA_URL      = "https://race.netkeiba.com/race/shutuba.html"
+SHUTUBA_SP_URL   = "https://race.sp.netkeiba.com/race/shutuba.html"
 
 HEADERS = {
     "User-Agent": (
@@ -49,39 +60,109 @@ logger = logging.getLogger(__name__)
 
 # ─── レース一覧取得 ───────────────────────────────────────────────────────────
 
-async def fetch_race_ids(
+async def _fetch_race_ids_from_url(
     session: aiohttp.ClientSession,
-    date_str: str,          # "YYYYMMDD"
+    url: str,
+    encoding: str = "utf-8",
 ) -> list[str]:
-    """当日の全 race_id を返す。"""
-    url = f"{RACE_LIST_URL}?kaisai_date={date_str}"
+    """指定URLからrace_idを収集して返す。"""
     try:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
             if resp.status != 200:
-                logger.warning(f"race_list fetch failed: HTTP {resp.status}")
+                logger.warning(f"race_list fetch failed: HTTP {resp.status} ({url})")
                 return []
-            html = await resp.text(encoding="utf-8", errors="replace")
+            html = await resp.text(encoding=encoding, errors="replace")
     except Exception as e:
-        logger.warning(f"race_list fetch error: {e}")
+        logger.warning(f"race_list fetch error ({url}): {e}")
         return []
 
     soup = BeautifulSoup(html, "lxml")
     race_ids: list[str] = []
+    seen: set[str] = set()
+
+    # <a href="...?race_id=..."> パターン
     for a in soup.find_all("a", href=True):
         m = re.search(r"race_id=(\d{12,})", a["href"])
-        if m:
+        if m and m.group(1) not in seen:
+            seen.add(m.group(1))
             race_ids.append(m.group(1))
 
-    # 重複除去・順序保持
-    seen: set[str] = set()
-    unique: list[str] = []
-    for rid in race_ids:
-        if rid not in seen:
-            seen.add(rid)
-            unique.append(rid)
+    # data属性や onclick にも含まれる場合があるため追加検索
+    for tag in soup.find_all(True):
+        for attr_val in tag.attrs.values():
+            if isinstance(attr_val, str):
+                for m in re.finditer(r"race_id=(\d{12,})", attr_val):
+                    rid = m.group(1)
+                    if rid not in seen:
+                        seen.add(rid)
+                        race_ids.append(rid)
 
-    logger.info(f"race_list: {date_str} → {len(unique)} races")
-    return unique
+    return race_ids
+
+
+async def fetch_race_ids(
+    session: aiohttp.ClientSession,
+    date_str: str,          # "YYYYMMDD"
+) -> list[str]:
+    """
+    当日の全 race_id を返す。
+
+    race_list_sub.html はJavaScriptで動的描画されるため、静的HTMLには
+    グレードレース等の一部リンクしか含まれない。
+    そこで取得できた race_id のプレフィックス (YYYYVVKKDD, 10桁) ごとに
+    R01〜R12 を全生成し、全レースを取得できるよう補完する。
+
+    過去日付では race_list_sub.html が 404 を返すため、
+    race_result_sub.html / db.netkeiba.com をフォールバックとして試みる。
+    """
+    # 試行する URL リスト（上から順に試し、seed IDs が取得できた時点で使用）
+    candidate_urls = [
+        (f"{RACE_LIST_URL}?kaisai_date={date_str}", "utf-8"),
+        (f"{RACE_RESULT_URL}?kaisai_date={date_str}", "utf-8"),
+        (f"{DB_RACE_LIST_URL}?pid=race_list&date={date_str}", "euc_jp"),
+        (f"https://race.netkeiba.com/top/race_list.html?kaisai_date={date_str}", "utf-8"),
+        (f"https://race.netkeiba.com/top/race_result.html?kaisai_date={date_str}", "utf-8"),
+    ]
+
+    seed_ids: list[str] = []
+    for url, enc in candidate_urls:
+        seed_ids = await _fetch_race_ids_from_url(session, url, enc)
+        if seed_ids:
+            logger.info(f"race_list: {date_str} → seed {len(seed_ids)}件 ({url})")
+            break
+
+    if not seed_ids:
+        logger.warning(f"race_list: {date_str} → seed IDs が見つかりませんでした")
+        return []
+
+    # ── プレフィックス(YYYYVVKKDD)ごとに R01〜R12 を全生成 ──────────────────
+    # race_id 構造: YYYYVVKKDDNN
+    #   VV=会場コード  KK=回(kai)  DD=日(nichi)  NN=レース番号
+    # 静的HTMLには注目レースしかリンクされないため、
+    # 見つかったIDのNN部分を01-12に置換して全レースを補完する。
+    prefixes: list[str] = []
+    seen_pfx: set[str] = set()
+    for rid in seed_ids:
+        if len(rid) >= 12:
+            pfx = rid[:10]
+            if pfx not in seen_pfx:
+                seen_pfx.add(pfx)
+                prefixes.append(pfx)
+
+    all_ids: list[str] = []
+    seen_all: set[str] = set()
+    for pfx in prefixes:
+        for race_num in range(1, 13):
+            rid = f"{pfx}{race_num:02d}"
+            if rid not in seen_all:
+                seen_all.add(rid)
+                all_ids.append(rid)
+
+    logger.info(
+        f"race_list: {date_str} → seed {len(seed_ids)}件 / "
+        f"プレフィックス {len(prefixes)}会場 / 展開後 {len(all_ids)}件"
+    )
+    return all_ids
 
 
 # ─── 出馬表パース ─────────────────────────────────────────────────────────────
@@ -240,23 +321,46 @@ async def fetch_shutuba(
     semaphore: asyncio.Semaphore,
     race_id: str,
 ) -> Optional[dict]:
-    url = f"{SHUTUBA_URL}?race_id={race_id}"
+    """
+    PCサイトで出馬表を取得。パースできなければ SP サイト(EUC-JP)でも試みる。
+    """
     async with semaphore:
         await asyncio.sleep(random.uniform(0.5, 1.0))
-        try:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
-                if resp.status != 200:
-                    logger.warning(f"shutuba fetch failed {race_id}: HTTP {resp.status}")
-                    return None
-                html = await resp.text(encoding="utf-8", errors="replace")
-        except Exception as e:
-            logger.warning(f"shutuba fetch error {race_id}: {e}")
-            return None
 
-    result = _parse_shutuba(race_id, html)
-    if result:
-        logger.info(f"OK {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
-    return result
+        # PC サイト (UTF-8)
+        url_pc = f"{SHUTUBA_URL}?race_id={race_id}"
+        try:
+            async with session.get(url_pc, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+                if resp.status == 200:
+                    html = await resp.text(encoding="utf-8", errors="replace")
+                    result = _parse_shutuba(race_id, html)
+                    if result:
+                        logger.info(f"OK(PC) {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
+                        return result
+                else:
+                    logger.warning(f"shutuba PC failed {race_id}: HTTP {resp.status}")
+        except Exception as e:
+            logger.warning(f"shutuba PC error {race_id}: {e}")
+
+        # SP サイト フォールバック (EUC-JP)
+        await asyncio.sleep(random.uniform(0.3, 0.6))
+        url_sp = f"{SHUTUBA_SP_URL}?race_id={race_id}"
+        try:
+            async with session.get(url_sp, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+                if resp.status == 200:
+                    html = await resp.text(encoding="euc_jp", errors="replace")
+                    result = _parse_shutuba(race_id, html)
+                    if result:
+                        logger.info(f"OK(SP) {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
+                        return result
+                    else:
+                        logger.warning(f"shutuba SP parse failed {race_id}")
+                else:
+                    logger.warning(f"shutuba SP failed {race_id}: HTTP {resp.status}")
+        except Exception as e:
+            logger.warning(f"shutuba SP error {race_id}: {e}")
+
+    return None
 
 
 # ─── メインエントリ ───────────────────────────────────────────────────────────
