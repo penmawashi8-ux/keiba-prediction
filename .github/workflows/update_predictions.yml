@@ -133,6 +133,7 @@ jobs:
           python3 /tmp/test_scraper.py "$DATE" > web/predictions/parse_test.txt 2>&1
 
       - name: Run prediction
+        continue-on-error: true
         run: |
           # workflow_dispatch と workflow_call の両方で date を取得
           DATE="${{ inputs.date || github.event.inputs.date }}"
