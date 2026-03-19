@@ -170,62 +170,38 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python3 - <<'PYEOF'
-          import base64, json, os, pathlib, urllib.request
+          TARGET=$(python3 -c "
+          import json, pathlib
+          p = pathlib.Path('web/predictions/latest.json')
+          d = json.loads(p.read_text()) if p.exists() else {}
+          print(d.get('target_date', 'unknown'))
+          " 2>/dev/null || echo "unknown")
+          echo "Target date: $TARGET"
 
-          TOKEN   = os.environ["GH_TOKEN"]
-          REPO    = os.environ["GITHUB_REPOSITORY"]
-          BRANCH  = os.environ["GITHUB_REF_NAME"]
-          API     = f"https://api.github.com/repos/{REPO}/contents"
-          HEADERS = {
-              "Authorization": f"token {TOKEN}",
-              "Accept": "application/vnd.github.v3+json",
-              "Content-Type": "application/json",
+          commit_file() {
+            local fpath="$1"
+            [ -f "$fpath" ] || return 0
+            SHA=$(gh api "repos/$GITHUB_REPOSITORY/contents/$fpath?ref=$GITHUB_REF_NAME" \
+              --jq .sha 2>/dev/null || echo "")
+            if [ -n "$SHA" ]; then
+              gh api "repos/$GITHUB_REPOSITORY/contents/$fpath" \
+                --method PUT \
+                -f message="chore: update predictions $TARGET" \
+                -f content="$(base64 -w0 "$fpath")" \
+                -f branch="$GITHUB_REF_NAME" \
+                -f sha="$SHA" \
+                --silent && echo "  updated: $fpath" || echo "  failed: $fpath"
+            else
+              gh api "repos/$GITHUB_REPOSITORY/contents/$fpath" \
+                --method PUT \
+                -f message="chore: update predictions $TARGET" \
+                -f content="$(base64 -w0 "$fpath")" \
+                -f branch="$GITHUB_REF_NAME" \
+                --silent && echo "  created: $fpath" || echo "  failed: $fpath"
+            fi
           }
 
-          FILES = [
-              "web/predictions/latest.json",
-              "web/predictions/run_log.txt",
-              "web/predictions/diag.txt",
-              "web/predictions/parse_test.txt",
-          ]
-
-          def api(method, path, body=None):
-              data = json.dumps(body).encode() if body else None
-              req = urllib.request.Request(f"{API}/{path}", data=data, headers=HEADERS, method=method)
-              try:
-                  with urllib.request.urlopen(req) as r:
-                      return json.loads(r.read())
-              except urllib.error.HTTPError as e:
-                  if e.code == 404:
-                      return None
-                  raise
-
-          target_date = "unknown"
-          p = pathlib.Path("web/predictions/latest.json")
-          if p.exists():
-              target_date = json.loads(p.read_text()).get("target_date", "unknown")
-
-          committed = 0
-          for fpath in FILES:
-              local = pathlib.Path(fpath)
-              if not local.exists():
-                  continue
-              content_b64 = base64.b64encode(local.read_bytes()).decode()
-              # Get current SHA (needed for update; None = create)
-              existing = api("GET", f"{fpath}?ref={BRANCH}")
-              sha = existing["sha"] if existing and "sha" in existing else None
-              body = {
-                  "message": f"chore: update predictions {target_date}",
-                  "content": content_b64,
-                  "branch": BRANCH,
-              }
-              if sha:
-                  body["sha"] = sha
-              result = api("PUT", fpath, body)
-              if result:
-                  print(f"  committed: {fpath}")
-                  committed += 1
-
-          print(f"Done: {committed} file(s) committed to {BRANCH}")
-          PYEOF
+          commit_file web/predictions/latest.json
+          commit_file web/predictions/run_log.txt
+          commit_file web/predictions/diag.txt
+          commit_file web/predictions/parse_test.txt
