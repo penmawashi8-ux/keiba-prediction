@@ -50,7 +50,7 @@ jobs:
           if [ -z "$DATE" ]; then
             DATE=$(python3 -c "from datetime import datetime,timezone,timedelta; print(datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d'))")
           fi
-          echo "=== Testing race list URLs for $DATE ==="
+          echo "=== Testing race list URLs for $DATE ===" | tee /tmp/diag_result.txt
           for URL in \
             "https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=${DATE}" \
             "https://race.netkeiba.com/top/race_result_sub.html?kaisai_date=${DATE}" \
@@ -59,11 +59,14 @@ jobs:
             HTTP=$(curl -s -o /tmp/diag.html -w "%{http_code}" -L "$URL" \
               -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
             MATCHES=$(grep -oP 'race_id=\d{12,}' /tmp/diag.html 2>/dev/null | sort -u | wc -l)
-            echo "HTTP $HTTP | race_id matches: $MATCHES | $URL"
+            LINE="HTTP $HTTP | race_id_matches: $MATCHES | $URL"
+            echo "$LINE" | tee -a /tmp/diag_result.txt
             if [ "$MATCHES" -gt 0 ]; then
-              grep -oP 'race_id=\d{12,}' /tmp/diag.html | sort -u | head -3
+              grep -oP 'race_id=\d{12,}' /tmp/diag.html | sort -u | head -5 | tee -a /tmp/diag_result.txt
             fi
           done
+          mkdir -p web/predictions
+          cp /tmp/diag_result.txt web/predictions/diag.txt
 
       - name: Run prediction
         run: |
@@ -98,7 +101,7 @@ jobs:
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add web/predictions/latest.json
+          git add web/predictions/latest.json web/predictions/diag.txt 2>/dev/null || git add web/predictions/latest.json
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
