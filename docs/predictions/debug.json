@@ -1,0 +1,24 @@
+{
+  "race_list_sub": {
+    "url": "https://race.sp.netkeiba.com/top/race_list_sub.html?kaisai_date=20260315",
+    "status": 404,
+    "race_ids": [],
+    "html_head": ""
+  },
+  "race_list": {
+    "url": "https://race.sp.netkeiba.com/top/race_list.html?kaisai_date=20260315",
+    "status": 404,
+    "race_ids": [],
+    "html_head": ""
+  },
+  "shutuba_202606020601": {
+    "url": "https://race.sp.netkeiba.com/race/shutuba.html?race_id=202606020601",
+    "status": 200,
+    "html_head": "\n\n\n\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"EUC-JP\">\n\n<!-- block=meta_tag_each_race (cp) -->\n<meta http-equiv=\"content-language\" content=\"ja\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=0.5, user-scalable=yes\">\n\n<meta name=\"format-detection\" content=\"telephone=no\" />\n<meta name=\"description\" content=\"2026ǯ3��15�� �滳1R ����̤�����ν���ɽ�Ǥ���JRA���ť졼���ν���ɽ��ǿ����å����졼�����®��ʧ������Ϥ��ᡢ����ͽ�ۤ�ǡ���ʬ�Ϥʤ�ͽ�ۤ���Ω�ľ�������ܤǤ���\" />\n<meta name=\"keywords\" content=\"����,keiba,����ɽ,���å�,ͽ��,�졼�����,ʧ�ᤷ,���®��,����ͽ��,�ͥåȶ���,netkeiba\" /"
+  },
+  "shutuba_202606020602": {
+    "url": "https://race.sp.netkeiba.com/race/shutuba.html?race_id=202606020602",
+    "status": 200,
+    "html_head": "\n\n\n\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"EUC-JP\">\n\n<!-- block=meta_tag_each_race (cp) -->\n<meta http-equiv=\"content-language\" content=\"ja\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=0.5, user-scalable=yes\">\n\n<meta name=\"format-detection\" content=\"telephone=no\" />\n<meta name=\"description\" content=\"2026ǯ3��15�� �滳2R ����̤�����ν���ɽ�Ǥ���JRA���ť졼���ν���ɽ��ǿ����å����졼�����®��ʧ������Ϥ��ᡢ����ͽ�ۤ�ǡ���ʬ�Ϥʤ�ͽ�ۤ���Ω�ľ�������ܤǤ���\" />\n<meta name=\"keywords\" content=\"����,keiba,����ɽ,���å�,ͽ��,�졼�����,ʧ�ᤷ,���®��,����ͽ��,�ͥåȶ���,netkeiba\" /"
+  }
+}
