@@ -119,15 +119,15 @@ jobs:
                       print(f'rows: {len(rows)}')
                       for row in rows[:5]:
                           cells = row.find_all('td')
-                          print(f'  cells: {len(cells)}', end='')
-                          umaban_td = row.find('td', class_=re.compile(r'Umaban', re.I))
-                          if umaban_td:
-                              print(f' umaban={repr(umaban_td.get_text(strip=True))}', end='')
-                          horse_td = row.find('td', class_=re.compile(r'HorseName', re.I))
-                          if horse_td:
-                              a = horse_td.find('a', href=re.compile(r'/horse/'))
-                              print(f' horse={repr(a.get_text(strip=True) if a else None)}', end='')
-                          print()
+                          print(f'  cells: {len(cells)}')
+                          if len(cells) == 0:
+                              continue
+                          # Show first few td classes and content
+                          for td in cells[:6]:
+                              cls = td.get('class', [])
+                              txt = td.get_text(strip=True)[:20]
+                              inner = str(td)[:80].replace('\n','')
+                              print(f'    td class={cls} text={repr(txt)} inner={repr(inner)}')
           asyncio.run(main())
           PYEOF
           python3 /tmp/test_scraper.py "$DATE" > web/predictions/parse_test.txt 2>&1
