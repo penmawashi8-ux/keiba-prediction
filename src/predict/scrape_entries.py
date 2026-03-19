@@ -173,11 +173,11 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
     venue = VENUES.get(venue_code, venue_code)
 
     # タイトル: "RaceName 芝1200m" 等
-    for tag in soup.find_all(["h1", "h2", "div"], class_=re.compile(r"RaceName|race_name|RaceNum", re.I)):
+    for tag in soup.find_all(["h1", "h2", "div"], class_=re.compile(r"RaceName|race_name", re.I)):
         text = tag.get_text(strip=True)
         if text and not race_name:
-            # 数字のみのタグ（R番号）は除外
-            if not re.fullmatch(r"\d+R?", text):
+            # レースナビゲーション文字列 ("1R2R3R...") を除外
+            if not re.search(r"(\d+R){2,}", text):
                 race_name = text
 
     # レースデータ行: "芝1200m（良）" / "発走 10:00 / ダ1800m"

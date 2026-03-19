@@ -144,10 +144,19 @@ def _nan_to_none(v):
 def build_json(df: pd.DataFrame, target_date: str) -> dict:
     """
     フィルタ済み DataFrame を latest.json 形式の dict に変換。
-    pred_prob >= MIN_PRED_PROB かつ odds <= MAX_ODDS の行のみ。
+    オッズが取得できた場合: pred_prob > 1/odds (EV+) かつ odds <= MAX_ODDS
+    オッズが取得できなかった場合 (過去レース等): pred_prob >= MIN_PRED_PROB
     """
-    # EV+ フィルタ: モデル予測勝率 > オッズ暗示勝率 (期待値 > 1) かつ odds ≤ MAX_ODDS
-    mask = (df["pred_prob"] > 1.0 / df["odds"].replace(0, float("inf"))) & (df["odds"] <= MAX_ODDS)
+    odds_available = df["odds"].notna().any()
+    if odds_available:
+        # EV+ フィルタ: モデル予測勝率 > オッズ暗示勝率 (期待値 > 1) かつ odds ≤ MAX_ODDS
+        mask = (df["pred_prob"] > 1.0 / df["odds"].replace(0, float("inf"))) & (df["odds"] <= MAX_ODDS)
+        filter_desc = {"ev_positive": "pred_prob > 1/odds", "max_odds": MAX_ODDS}
+    else:
+        # オッズなし (過去レース / 前日): 予測確率のみでフィルタ
+        mask = df["pred_prob"] >= MIN_PRED_PROB
+        filter_desc = {"min_pred_prob": MIN_PRED_PROB, "note": "odds unavailable - prob filter only"}
+
     bets = df[mask].copy()
 
     generated_at = datetime.now(JST).strftime("%Y-%m-%dT%H:%M:%S+09:00")
@@ -182,10 +191,7 @@ def build_json(df: pd.DataFrame, target_date: str) -> dict:
         "generated_at":  generated_at,
         "updated_at":    generated_at,   # index.html 後方互換
         "target_date":   target_date,
-        "filter_conditions": {
-            "ev_positive":  "pred_prob > 1/odds",
-            "max_odds":     MAX_ODDS,
-        },
+        "filter_conditions": filter_desc,
         "total_bets":    len(bets),
         "total_races":   len(races_out),
         "races":         races_out,
@@ -218,7 +224,7 @@ def main(date_str: str | None = None):
             "generated_at":  datetime.now(JST).strftime("%Y-%m-%dT%H:%M:%S+09:00"),
             "updated_at":    datetime.now(JST).strftime("%Y-%m-%dT%H:%M:%S+09:00"),
             "target_date":   target_date,
-            "filter_conditions": {"ev_positive": "pred_prob > 1/odds", "max_odds": MAX_ODDS},
+            "filter_conditions": {"ev_positive": "pred_prob > 1/odds", "max_odds": MAX_ODDS, "min_pred_prob": MIN_PRED_PROB},
             "total_bets":    0,
             "total_races":   0,
             "races":         [],
