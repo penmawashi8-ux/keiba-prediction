@@ -207,69 +207,70 @@ def _parse_shutuba(race_id: str, html: str) -> Optional[dict]:
         logger.warning(f"shutuba table not found: {race_id}")
         return None
 
+    def _text(tag) -> str:
+        return tag.get_text(strip=True) if tag else ""
+
     horses = []
     for row in table.find_all("tr"):
-        # HorseList クラス or td が十分ある行
         cells = row.find_all("td")
-        if len(cells) < 5:
+        if len(cells) < 10:
             continue
 
-        def _text(tag) -> str:
-            return tag.get_text(strip=True) if tag else ""
-
-        # 馬番: Umaban クラス or 2列目
-        umaban_td = row.find("td", class_=re.compile(r"Umaban|umaban", re.I))
-        horse_num_str = _text(umaban_td) if umaban_td else _text(cells[1])
-        if not horse_num_str.isdigit():
+        # ── 馬番: CheckMark td 内の select id="mark_X" から取得 ──
+        # （Umaban td はJS描画のため空）
+        horse_num = None
+        check_td = row.find("td", class_=re.compile(r"CheckMark", re.I))
+        if check_td:
+            sel = check_td.find("select")
+            if sel:
+                m = re.search(r"mark_(\d+)", sel.get("id", ""))
+                if m:
+                    horse_num = int(m.group(1))
+        if horse_num is None:
             continue
-        horse_num = int(horse_num_str)
 
-        # 馬名 + horse_id
+        # ── 馬名 + horse_id: HorseInfo > span.HorseName > a ──
         horse_name = ""
         horse_id   = ""
-        name_td    = row.find("td", class_=re.compile(r"HorseName|horsename", re.I))
-        if name_td:
-            a = name_td.find("a", href=re.compile(r"/horse/"))
+        info_td = row.find("td", class_=re.compile(r"HorseInfo", re.I))
+        if info_td:
+            a = info_td.find("a", href=re.compile(r"/horse/"))
             if a:
                 horse_name = a.get_text(strip=True)
                 m = re.search(r"/horse/(\d+)", a["href"])
                 if m:
                     horse_id = m.group(1)
+        if not horse_name:
+            continue
 
-        # 騎手
+        # ── 騎手: td.Jockey ──
         jockey = ""
-        jockey_td = row.find("td", class_=re.compile(r"Jockey|jockey", re.I))
+        jockey_td = row.find("td", class_=re.compile(r"^Jockey$", re.I))
         if jockey_td:
             a = jockey_td.find("a")
             jockey = _text(a) if a else _text(jockey_td)
 
-        # 斤量
-        futan_td = row.find("td", class_=re.compile(r"Futan|futan", re.I))
-        weight_carried_str = _text(futan_td) if futan_td else ""
+        # ── 斤量: cells[5] (Txt_C) ──
+        weight_carried = None
         try:
-            weight_carried = float(weight_carried_str)
-        except ValueError:
-            weight_carried = None
+            weight_carried = float(_text(cells[5]))
+        except (ValueError, IndexError):
+            pass
 
-        # 馬体重: "480(+2)" → 480
-        hw_td = row.find("td", class_=re.compile(r"HorseWeight|horseweight", re.I))
+        # ── 馬体重: cells[8] (Weight) - JS描画のため通常空 ──
         horse_weight_kg = None
-        if hw_td:
-            m = re.search(r"^(\d+)", _text(hw_td))
+        if len(cells) > 8:
+            m = re.search(r"^(\d+)", _text(cells[8]))
             if m:
                 horse_weight_kg = int(m.group(1))
 
-        # オッズ
-        odds_td = row.find("td", class_=re.compile(r"Odds|odds", re.I))
+        # ── オッズ: cells[9] (Txt_R Popular) - "---.-" は None ──
         odds = None
-        if odds_td:
+        if len(cells) > 9:
             try:
-                odds = float(_text(odds_td).replace(",", ""))
+                odds = float(_text(cells[9]).replace(",", ""))
             except ValueError:
                 pass
-
-        if not horse_name:
-            continue
 
         horses.append({
             "horse_num":      horse_num,
