@@ -44,6 +44,27 @@ jobs:
       # モデル (lgbm_model.txt) と stats CSV は src/model/ にコミット済み
       # チェックアウトのみで利用可能 — 追加ダウンロード不要
 
+      - name: Diagnose scraper URLs
+        run: |
+          DATE="${{ inputs.date || github.event.inputs.date }}"
+          if [ -z "$DATE" ]; then
+            DATE=$(python3 -c "from datetime import datetime,timezone,timedelta; print(datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d'))")
+          fi
+          echo "=== Testing race list URLs for $DATE ==="
+          for URL in \
+            "https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=${DATE}" \
+            "https://race.netkeiba.com/top/race_result_sub.html?kaisai_date=${DATE}" \
+            "https://db.netkeiba.com/?pid=race_list&date=${DATE}" \
+            "https://race.netkeiba.com/top/race_list.html?kaisai_date=${DATE}"; do
+            HTTP=$(curl -s -o /tmp/diag.html -w "%{http_code}" -L "$URL" \
+              -H "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            MATCHES=$(grep -oP 'race_id=\d{12,}' /tmp/diag.html 2>/dev/null | sort -u | wc -l)
+            echo "HTTP $HTTP | race_id matches: $MATCHES | $URL"
+            if [ "$MATCHES" -gt 0 ]; then
+              grep -oP 'race_id=\d{12,}' /tmp/diag.html | sort -u | head -3
+            fi
+          done
+
       - name: Run prediction
         run: |
           # workflow_dispatch と workflow_call の両方で date を取得
