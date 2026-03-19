@@ -1,13 +1,1258 @@
 {
-  "generated_at": "2026-03-19T18:00:17+09:00",
-  "updated_at": "2026-03-19T18:00:17+09:00",
+  "generated_at": "2026-03-19T19:29:27+09:00",
+  "updated_at": "2026-03-19T19:29:27+09:00",
   "target_date": "2026-03-15",
   "filter_conditions": {
-    "ev_positive": "pred_prob > 1/odds",
-    "max_odds": 20.0
+    "min_pred_prob": 0.08,
+    "note": "odds unavailable - prob filter only"
   },
-  "total_bets": 0,
-  "total_races": 0,
-  "races": [],
-  "note": "出走馬データを取得できませんでした"
+  "total_bets": 97,
+  "total_races": 25,
+  "races": [
+    {
+      "race_id": "202606020602",
+      "race_name": "3歳未勝利",
+      "venue": "中山",
+      "race_num": 2,
+      "surface": "ダート",
+      "distance_m": 1800,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 4,
+          "horse_name": "トルネードアイル",
+          "jockey": "ルメール",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1755,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 500
+        }
+      ]
+    },
+    {
+      "race_id": "202606020604",
+      "race_name": "3歳未勝利",
+      "venue": "中山",
+      "race_num": 4,
+      "surface": "ダート",
+      "distance_m": 1800,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 9,
+          "horse_name": "ギンケイ",
+          "jockey": "笹川翼",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0852,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 468
+        },
+        {
+          "horse_num": 10,
+          "horse_name": "スターサンサルー",
+          "jockey": "ルメール",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.2153,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 428
+        }
+      ]
+    },
+    {
+      "race_id": "202606020605",
+      "race_name": "3歳未勝利",
+      "venue": "中山",
+      "race_num": 5,
+      "surface": "芝",
+      "distance_m": 2000,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 11,
+          "horse_name": "ダノンファンスター",
+          "jockey": "ルメール",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1885,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 462
+        }
+      ]
+    },
+    {
+      "race_id": "202606020606",
+      "race_name": "4歳以上1勝クラス",
+      "venue": "中山",
+      "race_num": 6,
+      "surface": "ダート",
+      "distance_m": 1800,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 1,
+          "horse_name": "イスタンテ",
+          "jockey": "荻野極",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.088,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 508
+        },
+        {
+          "horse_num": 3,
+          "horse_name": "スターエンブレム",
+          "jockey": "笹川翼",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0835,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 480
+        }
+      ]
+    },
+    {
+      "race_id": "202606020607",
+      "race_name": "3歳1勝クラス",
+      "venue": "中山",
+      "race_num": 7,
+      "surface": "芝",
+      "distance_m": 1200,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 8,
+          "horse_name": "ハイヤーマーク",
+          "jockey": "ルメール",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1922,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 468
+        }
+      ]
+    },
+    {
+      "race_id": "202606020608",
+      "race_name": "4歳以上2勝クラス",
+      "venue": "中山",
+      "race_num": 8,
+      "surface": "芝",
+      "distance_m": 1600,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 3,
+          "horse_name": "クライスレリアーナ",
+          "jockey": "ルメール",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.2947,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 460
+        },
+        {
+          "horse_num": 4,
+          "horse_name": "コスモオピニオン",
+          "jockey": "△長浜",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1476,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 518
+        },
+        {
+          "horse_num": 6,
+          "horse_name": "ダノンミッション",
+          "jockey": "佐々木",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1501,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 488
+        },
+        {
+          "horse_num": 7,
+          "horse_name": "ツルマウカタチ",
+          "jockey": "石川",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1146,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 476
+        }
+      ]
+    },
+    {
+      "race_id": "202606020609",
+      "race_name": "阿見特別",
+      "venue": "中山",
+      "race_num": 9,
+      "surface": "ダート",
+      "distance_m": 2400,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 3,
+          "horse_name": "ムジェロ",
+          "jockey": "横山武",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0919,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 524
+        },
+        {
+          "horse_num": 8,
+          "horse_name": "サトノシュトラーセ",
+          "jockey": "岩田康",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0836,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 520
+        },
+        {
+          "horse_num": 9,
+          "horse_name": "ソウルアンドジャズ",
+          "jockey": "坂井",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0916,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 504
+        },
+        {
+          "horse_num": 12,
+          "horse_name": "キャストロププ",
+          "jockey": "丹内",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1706,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 500
+        },
+        {
+          "horse_num": 13,
+          "horse_name": "オオタチ",
+          "jockey": "佐々木",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1786,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 472
+        },
+        {
+          "horse_num": 14,
+          "horse_name": "ロングウェイホーム",
+          "jockey": "荻野極",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1663,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 542
+        }
+      ]
+    },
+    {
+      "race_id": "202606020610",
+      "race_name": "東風S",
+      "venue": "中山",
+      "race_num": 10,
+      "surface": "芝",
+      "distance_m": 1600,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 1,
+          "horse_name": "ゾンニッヒ",
+          "jockey": "団野",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.096,
+          "weight_carried": 59.0,
+          "horse_weight_kg": 484
+        },
+        {
+          "horse_num": 2,
+          "horse_name": "アルビージャ",
+          "jockey": "丹内",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1252,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 514
+        },
+        {
+          "horse_num": 4,
+          "horse_name": "ニシノスーベニア",
+          "jockey": "大野",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1491,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 528
+        },
+        {
+          "horse_num": 6,
+          "horse_name": "タシット",
+          "jockey": "石橋脩",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.138,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 482
+        },
+        {
+          "horse_num": 7,
+          "horse_name": "ダイシンヤマト",
+          "jockey": "吉田豊",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1285,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 510
+        },
+        {
+          "horse_num": 12,
+          "horse_name": "レガーロデルシエロ",
+          "jockey": "岩田康",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1175,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 516
+        },
+        {
+          "horse_num": 13,
+          "horse_name": "ダノンエアズロック",
+          "jockey": "津村",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1319,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 506
+        },
+        {
+          "horse_num": 15,
+          "horse_name": "ヴァルキリーバース",
+          "jockey": "ルメール",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.2246,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 470
+        },
+        {
+          "horse_num": 16,
+          "horse_name": "ランフォーヴァウ",
+          "jockey": "石川",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1276,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 452
+        },
+        {
+          "horse_num": 17,
+          "horse_name": "ジョイフルニュース",
+          "jockey": "佐々木",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.2576,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 460
+        },
+        {
+          "horse_num": 18,
+          "horse_name": "エンペラーズソード",
+          "jockey": "荻野極",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0911,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 494
+        }
+      ]
+    },
+    {
+      "race_id": "202606020611",
+      "race_name": "スプリングS",
+      "venue": "中山",
+      "race_num": 11,
+      "surface": "芝",
+      "distance_m": 1800,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 14,
+          "horse_name": "クレパスキュラー",
+          "jockey": "ルメール",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1893,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 486
+        }
+      ]
+    },
+    {
+      "race_id": "202606020612",
+      "race_name": "4歳以上1勝クラス",
+      "venue": "中山",
+      "race_num": 12,
+      "surface": "ダート",
+      "distance_m": 1200,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 1,
+          "horse_name": "イラーナ",
+          "jockey": "岩田康",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1776,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 460
+        },
+        {
+          "horse_num": 4,
+          "horse_name": "クインズポラリス",
+          "jockey": "田辺",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1449,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 502
+        },
+        {
+          "horse_num": 6,
+          "horse_name": "シルフレイ",
+          "jockey": "横山和",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1866,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 440
+        },
+        {
+          "horse_num": 7,
+          "horse_name": "スノークルーズ",
+          "jockey": "武藤",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0942,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 464
+        },
+        {
+          "horse_num": 17,
+          "horse_name": "ルージュベルベット",
+          "jockey": "▲石田",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1353,
+          "weight_carried": 53.0,
+          "horse_weight_kg": 444
+        }
+      ]
+    },
+    {
+      "race_id": "202607010203",
+      "race_name": "3歳未勝利",
+      "venue": "中京",
+      "race_num": 3,
+      "surface": "芝",
+      "distance_m": 1600,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 18,
+          "horse_name": "エンブルーシャ",
+          "jockey": "武豊",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0896,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 414
+        }
+      ]
+    },
+    {
+      "race_id": "202607010205",
+      "race_name": "3歳未勝利",
+      "venue": "中京",
+      "race_num": 5,
+      "surface": "芝",
+      "distance_m": 2200,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 13,
+          "horse_name": "アメジストブリエ",
+          "jockey": "武豊",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0986,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 428
+        }
+      ]
+    },
+    {
+      "race_id": "202607010206",
+      "race_name": "4歳以上1勝クラス",
+      "venue": "中京",
+      "race_num": 6,
+      "surface": "ダート",
+      "distance_m": 1400,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 7,
+          "horse_name": "ベルメサイア",
+          "jockey": "長岡",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1231,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 518
+        },
+        {
+          "horse_num": 10,
+          "horse_name": "ララバッカナール",
+          "jockey": "川田",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.265,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 460
+        },
+        {
+          "horse_num": 26,
+          "horse_name": "スプリングデイ",
+          "jockey": "黛",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0895,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 432
+        }
+      ]
+    },
+    {
+      "race_id": "202607010207",
+      "race_name": "4歳以上1勝クラス",
+      "venue": "中京",
+      "race_num": 7,
+      "surface": "ダート",
+      "distance_m": 1800,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 1,
+          "horse_name": "アークドール",
+          "jockey": "武豊",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0941,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 450
+        },
+        {
+          "horse_num": 7,
+          "horse_name": "カレンラップスター",
+          "jockey": "松本",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1062,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 502
+        },
+        {
+          "horse_num": 8,
+          "horse_name": "ガーデンカメリア",
+          "jockey": "▲和田陽",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.2391,
+          "weight_carried": 53.0,
+          "horse_weight_kg": 466
+        },
+        {
+          "horse_num": 11,
+          "horse_name": "サルタール",
+          "jockey": "小崎",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1978,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 516
+        },
+        {
+          "horse_num": 17,
+          "horse_name": "メイショウアゴナス",
+          "jockey": "丸山",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.096,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 474
+        }
+      ]
+    },
+    {
+      "race_id": "202607010208",
+      "race_name": "4歳以上1勝クラス",
+      "venue": "中京",
+      "race_num": 8,
+      "surface": "芝",
+      "distance_m": 2000,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 7,
+          "horse_name": "マイネルアレス",
+          "jockey": "戸崎圭",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1469,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 460
+        },
+        {
+          "horse_num": 10,
+          "horse_name": "メイショウアイル",
+          "jockey": "武豊",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0979,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 480
+        },
+        {
+          "horse_num": 12,
+          "horse_name": "エリーナストーム",
+          "jockey": "三浦",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.2172,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 522
+        }
+      ]
+    },
+    {
+      "race_id": "202607010209",
+      "race_name": "伊良湖特別",
+      "venue": "中京",
+      "race_num": 9,
+      "surface": "ダート",
+      "distance_m": 1200,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 2,
+          "horse_name": "ザウリ",
+          "jockey": "丸山",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1996,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 532
+        },
+        {
+          "horse_num": 4,
+          "horse_name": "キングクー",
+          "jockey": "黛",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1515,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 526
+        },
+        {
+          "horse_num": 7,
+          "horse_name": "ダズリングダンス",
+          "jockey": "松若",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0876,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 490
+        },
+        {
+          "horse_num": 11,
+          "horse_name": "タミゼ",
+          "jockey": "和田陽",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1095,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 484
+        },
+        {
+          "horse_num": 12,
+          "horse_name": "ペレグリン",
+          "jockey": "松山",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1389,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 440
+        },
+        {
+          "horse_num": 14,
+          "horse_name": "クールソル",
+          "jockey": "亀田",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1247,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 464
+        },
+        {
+          "horse_num": 16,
+          "horse_name": "ランウインディ",
+          "jockey": "岩田望",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0934,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 474
+        },
+        {
+          "horse_num": 19,
+          "horse_name": "ロッカバイベイビー",
+          "jockey": "佐藤",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0868,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 450
+        }
+      ]
+    },
+    {
+      "race_id": "202607010210",
+      "race_name": "昇竜S",
+      "venue": "中京",
+      "race_num": 10,
+      "surface": "ダート",
+      "distance_m": 1400,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 3,
+          "horse_name": "スマートジュリアス",
+          "jockey": "武豊",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0954,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 476
+        }
+      ]
+    },
+    {
+      "race_id": "202607010211",
+      "race_name": "金鯱賞",
+      "venue": "中京",
+      "race_num": 11,
+      "surface": "芝",
+      "distance_m": 2000,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 3,
+          "horse_name": "ドゥラドーレス",
+          "jockey": "戸崎圭",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1195,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 498
+        },
+        {
+          "horse_num": 5,
+          "horse_name": "シェイクユアハート",
+          "jockey": "古川吉",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1485,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 462
+        },
+        {
+          "horse_num": 6,
+          "horse_name": "ホウオウビスケッツ",
+          "jockey": "岩田望",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1122,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 502
+        },
+        {
+          "horse_num": 7,
+          "horse_name": "ジューンテイク",
+          "jockey": "武豊",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1969,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 500
+        },
+        {
+          "horse_num": 8,
+          "horse_name": "セキトバイースト",
+          "jockey": "浜中",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1317,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 460
+        },
+        {
+          "horse_num": 10,
+          "horse_name": "クイーンズウォーク",
+          "jockey": "川田",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1118,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 542
+        },
+        {
+          "horse_num": 11,
+          "horse_name": "アーバンシック",
+          "jockey": "三浦",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1569,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 522
+        },
+        {
+          "horse_num": 12,
+          "horse_name": "サフィラ",
+          "jockey": "丸山",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0918,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 478
+        },
+        {
+          "horse_num": 14,
+          "horse_name": "ジョバンニ",
+          "jockey": "松山",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1456,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 482
+        }
+      ]
+    },
+    {
+      "race_id": "202607010212",
+      "race_name": "4歳以上1勝クラス",
+      "venue": "中京",
+      "race_num": 12,
+      "surface": "芝",
+      "distance_m": 1200,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 1,
+          "horse_name": "アンバーニードル",
+          "jockey": "岩田望",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1311,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 498
+        },
+        {
+          "horse_num": 4,
+          "horse_name": "エコロハート",
+          "jockey": "亀田",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0959,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 430
+        },
+        {
+          "horse_num": 7,
+          "horse_name": "シャトーボビー",
+          "jockey": "野中",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1797,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 482
+        },
+        {
+          "horse_num": 8,
+          "horse_name": "ショーモッシュ",
+          "jockey": "▲小林美",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1174,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 496
+        },
+        {
+          "horse_num": 12,
+          "horse_name": "ティピティーナ",
+          "jockey": "戸崎圭",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1788,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 436
+        },
+        {
+          "horse_num": 18,
+          "horse_name": "マキシマムドライブ",
+          "jockey": "横山典",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0945,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 550
+        }
+      ]
+    },
+    {
+      "race_id": "202609010804",
+      "race_name": "4歳以上障害未勝利",
+      "venue": "阪神",
+      "race_num": 4,
+      "surface": "障",
+      "distance_m": 2970,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 14,
+          "horse_name": "ポワンキュルミナン",
+          "jockey": "小牧加",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0909,
+          "weight_carried": 60.0,
+          "horse_weight_kg": 442
+        },
+        {
+          "horse_num": 16,
+          "horse_name": "ロワゾブルー",
+          "jockey": "小野寺",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1367,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 452
+        }
+      ]
+    },
+    {
+      "race_id": "202609010807",
+      "race_name": "4歳以上1勝クラス",
+      "venue": "阪神",
+      "race_num": 7,
+      "surface": "芝",
+      "distance_m": 1600,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 2,
+          "horse_name": "グローブアマランス",
+          "jockey": "松岡",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1075,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 482
+        },
+        {
+          "horse_num": 4,
+          "horse_name": "ジュンライトニング",
+          "jockey": "富田",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1642,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 458
+        },
+        {
+          "horse_num": 5,
+          "horse_name": "テーオーシュタイン",
+          "jockey": "田口",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.2048,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 472
+        },
+        {
+          "horse_num": 15,
+          "horse_name": "ダイシンラー",
+          "jockey": "高杉",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.156,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 500
+        }
+      ]
+    },
+    {
+      "race_id": "202609010808",
+      "race_name": "4歳以上2勝クラス",
+      "venue": "阪神",
+      "race_num": 8,
+      "surface": "ダート",
+      "distance_m": 1800,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 1,
+          "horse_name": "アラナコア",
+          "jockey": "菱田",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1257,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 504
+        },
+        {
+          "horse_num": 3,
+          "horse_name": "ケイアイメキラ",
+          "jockey": "藤懸",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.102,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 494
+        },
+        {
+          "horse_num": 7,
+          "horse_name": "ダブルジャッジ",
+          "jockey": "西塚",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1135,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 504
+        },
+        {
+          "horse_num": 8,
+          "horse_name": "ドッビアーコ",
+          "jockey": "鮫島駿",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1422,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 554
+        },
+        {
+          "horse_num": 11,
+          "horse_name": "エンマ",
+          "jockey": "高倉",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.2455,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 474
+        },
+        {
+          "horse_num": 12,
+          "horse_name": "プラニスフェリオ",
+          "jockey": "田口",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1331,
+          "weight_carried": 58.0,
+          "horse_weight_kg": 510
+        }
+      ]
+    },
+    {
+      "race_id": "202609010810",
+      "race_name": "甲南S",
+      "venue": "阪神",
+      "race_num": 10,
+      "surface": "ダート",
+      "distance_m": 1800,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 1,
+          "horse_name": "プレイサーゴールド",
+          "jockey": "小沢",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0856,
+          "weight_carried": 54.0,
+          "horse_weight_kg": 498
+        },
+        {
+          "horse_num": 6,
+          "horse_name": "グロバーテソーロ",
+          "jockey": "菱田",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.119,
+          "weight_carried": 54.0,
+          "horse_weight_kg": 506
+        },
+        {
+          "horse_num": 8,
+          "horse_name": "ホルトバージ",
+          "jockey": "川又",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0847,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 476
+        },
+        {
+          "horse_num": 10,
+          "horse_name": "タマモキャリコ",
+          "jockey": "鮫島駿",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1014,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 424
+        },
+        {
+          "horse_num": 11,
+          "horse_name": "フラムリンガム",
+          "jockey": "北村友",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1124,
+          "weight_carried": 54.0,
+          "horse_weight_kg": 482
+        }
+      ]
+    },
+    {
+      "race_id": "202609010811",
+      "race_name": "米子城S",
+      "venue": "阪神",
+      "race_num": 11,
+      "surface": "芝",
+      "distance_m": 1200,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 3,
+          "horse_name": "ウインモナーク",
+          "jockey": "松岡",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0975,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 502
+        },
+        {
+          "horse_num": 11,
+          "horse_name": "ステークホルダー",
+          "jockey": "富田",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1082,
+          "weight_carried": 54.0,
+          "horse_weight_kg": 464
+        },
+        {
+          "horse_num": 13,
+          "horse_name": "ガロンヌ",
+          "jockey": "小沢",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1102,
+          "weight_carried": 55.0,
+          "horse_weight_kg": 476
+        },
+        {
+          "horse_num": 14,
+          "horse_name": "ジョーメッドヴィン",
+          "jockey": "鮫島駿",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0844,
+          "weight_carried": 57.0,
+          "horse_weight_kg": 530
+        }
+      ]
+    },
+    {
+      "race_id": "202609010812",
+      "race_name": "4歳以上2勝クラス",
+      "venue": "阪神",
+      "race_num": 12,
+      "surface": "ダート",
+      "distance_m": 1400,
+      "condition": "",
+      "horses": [
+        {
+          "horse_num": 4,
+          "horse_name": "クリノオリーブ",
+          "jockey": "幸",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.156,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 470
+        },
+        {
+          "horse_num": 7,
+          "horse_name": "ナリタヒカリ",
+          "jockey": "太宰",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1081,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 432
+        },
+        {
+          "horse_num": 10,
+          "horse_name": "モーニングマジック",
+          "jockey": "北村友",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.1863,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 528
+        },
+        {
+          "horse_num": 12,
+          "horse_name": "ラヴオントップ",
+          "jockey": "吉村",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0915,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 492
+        },
+        {
+          "horse_num": 13,
+          "horse_name": "キタノライブリー",
+          "jockey": "小沢",
+          "odds": null,
+          "popularity": null,
+          "pred_prob": 0.0923,
+          "weight_carried": 56.0,
+          "horse_weight_kg": 450
+        }
+      ]
+    }
+  ]
 }
