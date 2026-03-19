@@ -91,10 +91,11 @@ jobs:
             DATE=$(python3 -c "from datetime import datetime,timezone,timedelta; print(datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d'))")
           fi
           cat > /tmp/test_scraper.py << PYEOF
-          import asyncio, aiohttp, sys, logging
+          import asyncio, aiohttp, sys, logging, re
           logging.basicConfig(level=logging.WARNING, stream=sys.stdout)
           sys.path.insert(0, '.')
-          from src.predict.scrape_entries import fetch_race_ids, fetch_shutuba, HEADERS
+          from src.predict.scrape_entries import fetch_race_ids, HEADERS
+          from bs4 import BeautifulSoup
           DATE_ARG = sys.argv[1]
           async def main():
               async with aiohttp.ClientSession(headers=HEADERS) as session:
@@ -102,17 +103,31 @@ jobs:
                   print(f'=== race_ids ({len(ids)}) ===')
                   for i in ids[:5]:
                       print(' ', i)
-                  if ids:
-                      sem = asyncio.Semaphore(1)
-                      result = await fetch_shutuba(session, sem, ids[0])
-                      print(f'=== fetch_shutuba({ids[0]}) ===')
-                      if result:
-                          print(f'  race_name: {result["race_name"]}')
-                          print(f'  horses: {len(result["horses"])}')
-                          for h in result['horses'][:3]:
-                              print(f'    {h["horse_num"]} {h["horse_name"]} {h["jockey"]}')
-                      else:
-                          print('  result: None')
+                  if not ids:
+                      return
+                  rid = ids[0]
+                  # Fetch shutuba directly and inspect HTML
+                  url = f'https://race.netkeiba.com/race/shutuba.html?race_id={rid}'
+                  async with session.get(url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+                      print(f'shutuba HTTP: {resp.status}')
+                      html = await resp.text(encoding='euc_jp', errors='replace')
+                  soup = BeautifulSoup(html, 'lxml')
+                  table = soup.find('table', class_=re.compile(r'Shutuba|shutuba|RaceTable', re.I))
+                  print(f'table found: {table is not None}')
+                  if table:
+                      rows = table.find_all('tr')
+                      print(f'rows: {len(rows)}')
+                      for row in rows[:5]:
+                          cells = row.find_all('td')
+                          print(f'  cells: {len(cells)}', end='')
+                          umaban_td = row.find('td', class_=re.compile(r'Umaban', re.I))
+                          if umaban_td:
+                              print(f' umaban={repr(umaban_td.get_text(strip=True))}', end='')
+                          horse_td = row.find('td', class_=re.compile(r'HorseName', re.I))
+                          if horse_td:
+                              a = horse_td.find('a', href=re.compile(r'/horse/'))
+                              print(f' horse={repr(a.get_text(strip=True) if a else None)}', end='')
+                          print()
           asyncio.run(main())
           PYEOF
           python3 /tmp/test_scraper.py "$DATE" > web/predictions/parse_test.txt 2>&1
