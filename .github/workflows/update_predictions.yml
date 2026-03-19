@@ -90,35 +90,32 @@ jobs:
           if [ -z "$DATE" ]; then
             DATE=$(python3 -c "from datetime import datetime,timezone,timedelta; print(datetime.now(timezone(timedelta(hours=9))).strftime('%Y%m%d'))")
           fi
-          python3 - <<'PYEOF' > web/predictions/parse_test.txt 2>&1
-          import asyncio, aiohttp, sys, logging
-          logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
-          sys.path.insert(0, '.')
-          from src.predict.scrape_entries import fetch_race_ids, fetch_shutuba, HEADERS
-          import asyncio, aiohttp
+          python3 -c "
+import asyncio, aiohttp, sys, logging
+logging.basicConfig(level=logging.WARNING, stream=sys.stdout)
+sys.path.insert(0, '.')
+from src.predict.scrape_entries import fetch_race_ids, fetch_shutuba, HEADERS
 
-          DATE = "$DATE"
-          async def main():
-              async with aiohttp.ClientSession(headers=HEADERS) as session:
-                  ids = await fetch_race_ids(session, DATE)
-                  print(f"\n=== race_ids ({len(ids)}) ===")
-                  for i in ids[:5]:
-                      print(" ", i)
-                  if ids:
-                      import asyncio as _asyncio
-                      sem = asyncio.Semaphore(1)
-                      result = await fetch_shutuba(session, sem, ids[0])
-                      print(f"\n=== fetch_shutuba({ids[0]}) ===")
-                      if result:
-                          print(f"  race_name: {result['race_name']}")
-                          print(f"  horses: {len(result['horses'])}")
-                          for h in result['horses'][:3]:
-                              print(f"    {h['horse_num']} {h['horse_name']} {h['jockey']}")
-                      else:
-                          print("  result: None")
+async def main():
+    async with aiohttp.ClientSession(headers=HEADERS) as session:
+        ids = await fetch_race_ids(session, '${DATE}')
+        print(f'=== race_ids ({len(ids)}) ===')
+        for i in ids[:5]:
+            print(' ', i)
+        if ids:
+            sem = asyncio.Semaphore(1)
+            result = await fetch_shutuba(session, sem, ids[0])
+            print(f'=== fetch_shutuba({ids[0]}) ===')
+            if result:
+                print(f'  race_name: {result[\"race_name\"]}')
+                print(f'  horses: {len(result[\"horses\"])}')
+                for h in result['horses'][:3]:
+                    print(f'    {h[\"horse_num\"]} {h[\"horse_name\"]} {h[\"jockey\"]}')
+            else:
+                print('  result: None')
 
-          asyncio.run(main())
-          PYEOF
+asyncio.run(main())
+" > web/predictions/parse_test.txt 2>&1
 
       - name: Run prediction
         run: |
