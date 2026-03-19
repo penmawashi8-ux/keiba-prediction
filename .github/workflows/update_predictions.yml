@@ -146,6 +146,7 @@ jobs:
           exit $EXIT_CODE
 
       - name: Show result summary
+        continue-on-error: true
         run: |
           python - <<'EOF'
           import json, pathlib
@@ -165,6 +166,7 @@ jobs:
           EOF
 
       - name: Commit and push predictions
+        if: always()
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
