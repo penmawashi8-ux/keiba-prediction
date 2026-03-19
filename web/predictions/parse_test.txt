@@ -1,21 +1,21 @@
 === race_ids (36) ===
-  202606020801
-  202606020802
-  202606020803
-  202606020804
-  202606020805
+  202606020601
+  202606020602
+  202606020603
+  202606020604
+  202606020605
 shutuba HTTP: 200
 table found: True
 rows: 18
-  [0] class=['Waku', 'Txt_C'] text=''
-  [1] class=['Umaban', 'Txt_C'] text=''
+  [0] class=['Waku1', 'Txt_C'] text='1'
+  [1] class=['Umaban1', 'Txt_C'] text='1'
   [2] class=['CheckMark', 'Horse_Select'] text='--◎◯▲△☆&#10003消'
-  [3] class=['HorseInfo'] text='アクシズ'
-  [4] class=['Barei', 'Txt_C'] text='牡3'
-  [5] class=['Txt_C'] text='57.0'
-  [6] class=['Jockey'] text='横山琉'
-  [7] class=['Trainer'] text='美浦尾形'
-  [8] class=['Weight'] text=''
+  [3] class=['HorseInfo'] text='グラデュエール'
+  [4] class=['Barei', 'Txt_C'] text='牝3'
+  [5] class=['Txt_C'] text='55.0'
+  [6] class=['Jockey'] text='小林脩'
+  [7] class=['Trainer'] text='美浦粕谷'
+  [8] class=['Weight'] text='422(+4)'
   [9] class=['Txt_R', 'Popular'] text='---.-'
   [10] class=['Popular', 'Popular_Ninki', 'Txt_C'] text='**'
   [11] class=['FavRegist', 'Txt_C'] text=''
