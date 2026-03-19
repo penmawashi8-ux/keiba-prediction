@@ -90,6 +90,100 @@ jobs:
           mkdir -p web/predictions
           cp /tmp/diag_result.txt web/predictions/diag.txt
 
+      - name: Test SP shutuba HTML structure (202606020601)
+        run: |
+          python3 - << 'PYEOF' | tee web/predictions/sp_html_test.txt
+          import asyncio, aiohttp, sys, re
+          from bs4 import BeautifulSoup
+
+          TEST_RACE_ID = "202606020601"
+          SP_URL = f"https://race.sp.netkeiba.com/race/shutuba.html?race_id={TEST_RACE_ID}"
+          PC_URL = f"https://race.netkeiba.com/race/shutuba.html?race_id={TEST_RACE_ID}"
+
+          SP_HEADERS = {
+              "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
+              "Referer": "https://race.sp.netkeiba.com/",
+          }
+          PC_HEADERS = {
+              "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+              "Referer": "https://race.netkeiba.com/",
+          }
+
+          async def inspect_shutuba(label, url, headers, encoding="utf-8"):
+              print(f"\n{'='*60}")
+              print(f"=== {label}: {url} ===")
+              async with aiohttp.ClientSession(headers=headers) as session:
+                  try:
+                      async with session.get(url, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+                          print(f"HTTP: {resp.status}")
+                          if resp.status != 200:
+                              return
+                          html = await resp.text(encoding=encoding, errors="replace")
+                  except Exception as e:
+                      print(f"ERROR: {e}")
+                      return
+
+              print(f"HTML length: {len(html)}")
+              soup = BeautifulSoup(html, "lxml")
+
+              # テーブル一覧
+              print("\n--- Tables ---")
+              for t in soup.find_all("table"):
+                  cls = t.get("class", [])
+                  tid = t.get("id", "")
+                  rows = len(t.find_all("tr"))
+                  print(f"  table class={cls} id={tid} rows={rows}")
+
+              # 最初のテーブルの全行・セル構造
+              tables = soup.find_all("table")
+              for ti, table in enumerate(tables):
+                  rows = table.find_all("tr")
+                  if len(rows) < 3:
+                      continue
+                  print(f"\n--- Table[{ti}] class={table.get('class',[])} - First data row cell structure ---")
+                  for row in rows:
+                      cells = row.find_all("td")
+                      if len(cells) >= 5:
+                          for ci, td in enumerate(cells):
+                              cls = td.get("class", [])
+                              txt = td.get_text(strip=True)[:40]
+                              a_hrefs = [a.get("href","")[:50] for a in td.find_all("a")]
+                              sel_ids = [s.get("id","") for s in td.find_all("select")]
+                              print(f"    [{ci}] class={cls} text={repr(txt)} a_hrefs={a_hrefs} selects={sel_ids}")
+                          break
+                  break
+
+              # 馬番・馬名・オッズ・人気クラスを検索
+              print("\n--- Key class patterns ---")
+              for pat in ["Num", "Horse", "Jockey", "Odds", "Popular", "Ninki", "Shutuba",
+                          "umaban", "horsename", "popular", "odds", "ninki", "mark_"]:
+                  found = soup.find_all(class_=re.compile(pat, re.I))
+                  if found:
+                      sample = found[0].get_text(strip=True)[:30]
+                      print(f"  .{pat}: {len(found)}個 sample={repr(sample)}")
+
+              # mark_X select を探す
+              selects = soup.find_all("select", id=re.compile(r"mark_"))
+              print(f"\n--- select[id^=mark_]: {len(selects)}個 ---")
+              for s in selects[:3]:
+                  print(f"  id={s.get('id')}")
+
+              # body先頭2000文字
+              body = soup.find("body")
+              if body:
+                  print(f"\n--- Body HTML (first 2000 chars) ---")
+                  print(str(body)[:2000])
+
+          async def main():
+              # SP版 (EUC-JP)
+              await inspect_shutuba("SP版", SP_URL, SP_HEADERS, encoding="euc_jp")
+              await asyncio.sleep(1)
+              # PC版 (EUC-JP)
+              await inspect_shutuba("PC版", PC_URL, PC_HEADERS, encoding="euc_jp")
+
+          asyncio.run(main())
+          PYEOF
+
       - name: Test odds JSON API (known race_id)
         run: |
           python3 - << 'PYEOF' | tee web/predictions/odds_api_test.txt
@@ -263,3 +357,4 @@ jobs:
           commit_file web/predictions/diag.txt
           commit_file web/predictions/parse_test.txt
           commit_file web/predictions/odds_api_test.txt
+          commit_file web/predictions/sp_html_test.txt

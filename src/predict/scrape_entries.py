@@ -47,6 +47,15 @@ HEADERS = {
     "Referer": "https://race.netkeiba.com/",
 }
 
+SP_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) "
+        "Version/16.0 Mobile/15E148 Safari/604.1"
+    ),
+    "Referer": "https://race.sp.netkeiba.com/",
+}
+
 SURFACE_MAP   = {"芝": 0, "ダート": 1, "障": 2}
 CONDITION_MAP = {"良": 0, "稍重": 1, "重": 2, "不良": 3}
 WEATHER_MAP   = {"晴": 0, "曇": 1, "雨": 2, "小雨": 3}
@@ -505,38 +514,26 @@ async def fetch_shutuba(
     race_id: str,
 ) -> Optional[dict]:
     """
-    PCサイトで出馬表を取得。パースできなければ SP サイト(EUC-JP)でも試みる。
+    SP サイトで出馬表を取得（SP は過去日付でもオッズ取得可能）。
+    パースできなければ PC サイト(EUC-JP)でフォールバック。
     """
     async with semaphore:
         await asyncio.sleep(random.uniform(0.5, 1.0))
 
-        # PC サイト (EUC-JP)
-        url_pc = f"{SHUTUBA_URL}?race_id={race_id}"
-        try:
-            async with session.get(url_pc, timeout=aiohttp.ClientTimeout(total=20)) as resp:
-                if resp.status == 200:
-                    html = await resp.text(encoding="euc_jp", errors="replace")
-                    result = _parse_shutuba(race_id, html)
-                    if result:
-                        logger.info(f"OK(PC) {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
-                        # 出馬表のオッズ列はJS描画で常に空のため、常に単勝オッズAPIで補完
-                        await _fill_odds(session, race_id, result)
-                        return result
-                else:
-                    logger.warning(f"shutuba PC failed {race_id}: HTTP {resp.status}")
-        except Exception as e:
-            logger.warning(f"shutuba PC error {race_id}: {e}")
-
-        # SP サイト フォールバック (EUC-JP)
-        await asyncio.sleep(random.uniform(0.3, 0.6))
+        # SP サイト優先 (EUC-JP)
         url_sp = f"{SHUTUBA_SP_URL}?race_id={race_id}"
         try:
-            async with session.get(url_sp, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+            async with session.get(
+                url_sp,
+                headers=SP_HEADERS,
+                timeout=aiohttp.ClientTimeout(total=20),
+            ) as resp:
                 if resp.status == 200:
                     html = await resp.text(encoding="euc_jp", errors="replace")
                     result = _parse_shutuba(race_id, html)
                     if result:
                         logger.info(f"OK(SP) {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
+                        # 単勝オッズAPI で補完
                         await _fill_odds(session, race_id, result)
                         return result
                     else:
@@ -545,6 +542,23 @@ async def fetch_shutuba(
                     logger.warning(f"shutuba SP failed {race_id}: HTTP {resp.status}")
         except Exception as e:
             logger.warning(f"shutuba SP error {race_id}: {e}")
+
+        # PC サイト フォールバック (EUC-JP)
+        await asyncio.sleep(random.uniform(0.3, 0.6))
+        url_pc = f"{SHUTUBA_URL}?race_id={race_id}"
+        try:
+            async with session.get(url_pc, timeout=aiohttp.ClientTimeout(total=20)) as resp:
+                if resp.status == 200:
+                    html = await resp.text(encoding="euc_jp", errors="replace")
+                    result = _parse_shutuba(race_id, html)
+                    if result:
+                        logger.info(f"OK(PC) {race_id}: {result['race_name']} ({len(result['horses'])}頭)")
+                        await _fill_odds(session, race_id, result)
+                        return result
+                else:
+                    logger.warning(f"shutuba PC failed {race_id}: HTTP {resp.status}")
+        except Exception as e:
+            logger.warning(f"shutuba PC error {race_id}: {e}")
 
     return None
 
