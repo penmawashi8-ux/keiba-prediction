@@ -1,12 +1,12 @@
 {
   "race_list_sub": {
-    "url": "https://race.sp.netkeiba.com/top/race_list_sub.html?kaisai_date=20260404",
+    "url": "https://race.sp.netkeiba.com/top/race_list_sub.html?kaisai_date=20260411",
     "status": 404,
     "race_ids": [],
     "html_head": ""
   },
   "race_list": {
-    "url": "https://race.sp.netkeiba.com/top/race_list.html?kaisai_date=20260404",
+    "url": "https://race.sp.netkeiba.com/top/race_list.html?kaisai_date=20260411",
     "status": 404,
     "race_ids": [],
     "html_head": ""
