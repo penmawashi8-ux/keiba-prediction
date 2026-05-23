@@ -1,12 +1,12 @@
 {
   "race_list_sub": {
-    "url": "https://race.sp.netkeiba.com/top/race_list_sub.html?kaisai_date=20260516",
+    "url": "https://race.sp.netkeiba.com/top/race_list_sub.html?kaisai_date=20260523",
     "status": 404,
     "race_ids": [],
     "html_head": ""
   },
   "race_list": {
-    "url": "https://race.sp.netkeiba.com/top/race_list.html?kaisai_date=20260516",
+    "url": "https://race.sp.netkeiba.com/top/race_list.html?kaisai_date=20260523",
     "status": 404,
     "race_ids": [],
     "html_head": ""
@@ -14,11 +14,11 @@
   "shutuba_202606020601": {
     "url": "https://race.sp.netkeiba.com/race/shutuba.html?race_id=202606020601",
     "status": 200,
-    "html_head": "\n\n\n\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"EUC-JP\">\n\n<!-- block=meta_tag_each_race (cp) -->\n<meta http-equiv=\"content-language\" content=\"ja\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=0.5, user-scalable=yes\">\n\n<meta name=\"format-detection\" content=\"telephone=no\" />\n<meta name=\"description\" content=\"2026ǯ3��15�� �滳1R ����̤�����ν���ɽ�Ǥ���JRA���ť졼���ν���ɽ��ǿ����å����졼�����®��ʧ������Ϥ��ᡢ����ͽ�ۤ�ǡ���ʬ�Ϥʤ�ͽ�ۤ���Ω�ľ�������ܤǤ���\" />\n<meta name=\"keywords\" content=\"����,keiba,����ɽ,���å�,ͽ��,�졼�����,ʧ�ᤷ,���®��,����ͽ��,�ͥåȶ���,netkeiba\" /"
+    "html_head": "\n\n\n\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n\n<!-- block=meta_tag_each_race (cp) -->\n<meta http-equiv=\"content-language\" content=\"ja\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=0.5, user-scalable=yes\">\n\n<meta name=\"format-detection\" content=\"telephone=no\" />\n<meta name=\"description\" content=\"2026年3月15日 中山1R ３歳未勝利の出馬表です。JRA開催レースの出馬表や最新オッズ、レース結果速報、払戻情報をはじめ、競馬予想やデータ分析など予想に役立つ情報も満載です。\" />\n<meta name=\"keywords\" content=\"競馬,keiba,出馬表,オッズ,予想,レース結果,払戻し,結果速報,競馬予想,ネット競馬,netkeiba\" />\n<meta name=\"thumbnail\" content=\"https://www.netke"
   },
   "shutuba_202606020602": {
     "url": "https://race.sp.netkeiba.com/race/shutuba.html?race_id=202606020602",
     "status": 200,
-    "html_head": "\n\n\n\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"EUC-JP\">\n\n<!-- block=meta_tag_each_race (cp) -->\n<meta http-equiv=\"content-language\" content=\"ja\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=0.5, user-scalable=yes\">\n\n<meta name=\"format-detection\" content=\"telephone=no\" />\n<meta name=\"description\" content=\"2026ǯ3��15�� �滳2R ����̤�����ν���ɽ�Ǥ���JRA���ť졼���ν���ɽ��ǿ����å����졼�����®��ʧ������Ϥ��ᡢ����ͽ�ۤ�ǡ���ʬ�Ϥʤ�ͽ�ۤ���Ω�ľ�������ܤǤ���\" />\n<meta name=\"keywords\" content=\"����,keiba,����ɽ,���å�,ͽ��,�졼�����,ʧ�ᤷ,���®��,����ͽ��,�ͥåȶ���,netkeiba\" /"
+    "html_head": "\n\n\n\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\">\n\n<!-- block=meta_tag_each_race (cp) -->\n<meta http-equiv=\"content-language\" content=\"ja\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=0.5, user-scalable=yes\">\n\n<meta name=\"format-detection\" content=\"telephone=no\" />\n<meta name=\"description\" content=\"2026年3月15日 中山2R ３歳未勝利の出馬表です。JRA開催レースの出馬表や最新オッズ、レース結果速報、払戻情報をはじめ、競馬予想やデータ分析など予想に役立つ情報も満載です。\" />\n<meta name=\"keywords\" content=\"競馬,keiba,出馬表,オッズ,予想,レース結果,払戻し,結果速報,競馬予想,ネット競馬,netkeiba\" />\n<meta name=\"thumbnail\" content=\"https://www.netke"
   }
 }
