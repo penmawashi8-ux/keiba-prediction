@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-26T10:18:30+09:00",
-  "updated_at": "2026-09-26T10:18:30+09:00",
-  "target_date": "2026-09-26",
+  "generated_at": "2026-10-03T10:48:03+09:00",
+  "updated_at": "2026-10-03T10:48:03+09:00",
+  "target_date": "2026-10-03",
   "filter_conditions": {
     "ev_positive": "pred_prob > 1/odds",
     "max_odds": 20.0
